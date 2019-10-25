@@ -17,9 +17,9 @@ jobs:
       - name: test
         run: npm run test
       - name: build
-        run: npm run build -- --environment production
+        run: npm run build -- --environment production --output-path dist/krumi
       - name: bundle
-        run: tar -cvzf krumi.tar.gz -s /^dist/krumi/ dist
+        run: tar -C dist -cvzf krumi.tar.gz krumi
       - name: create-release
         id: create_release
         uses: actions/create-release@master
