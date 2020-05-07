@@ -1,10 +1,16 @@
 module.exports = {
+  settings: {
+    react: {
+      version: 'detect',
+    },
+  },
   env: {
     browser: true,
     es6: true
   },
   extends: [
-    'standard'
+    'standard',
+    'plugin:react/recommended',
   ],
   globals: {
     Atomics: 'readonly',
@@ -19,7 +25,7 @@ module.exports = {
     '@typescript-eslint'
   ],
   rules: {
-    "semi": ["error", "always"],
-    "space-before-function-paren": ["error", "never"],
+    'semi': ['error', 'always'],
+    'space-before-function-paren': ['error', 'never'],
   }
 }
