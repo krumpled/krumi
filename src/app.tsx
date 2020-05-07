@@ -3,10 +3,11 @@ import Head from '@krumpled/krumi/components/application-head';
 import Foot from '@krumpled/krumi/components/application-footer';
 import React from 'react';
 
-export default function run() {
+export default function run(): React.FunctionComponentElement<{}> {
   return (
     <Router>
-      <Head />
+      <Route>
+        <Head />
         <Switch>
           <Route path='/login'>
             I am login
@@ -15,7 +16,8 @@ export default function run() {
             <Link to='/login'>Login</Link>
           </Route>
         </Switch>
-      <Foot />
+        <Foot />
+      </Route>
     </Router>
   );
 }
