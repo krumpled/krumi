@@ -4,6 +4,14 @@
     "module": "commonjs",
     "strict": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true 
-  }
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "noEmit": true,
+    "paths": {
+      "@krumpled/krumi/*": ["src/*"]
+    }
+  },
+  "include": [
+    "src/**/*"
+  ]
 }
