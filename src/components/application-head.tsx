@@ -1,7 +1,7 @@
 import React from 'react';
 
 function Head(): React.FunctionComponentElement<{}> {
-  return (<div></div>);
+  return (<header>header</header>);
 }
 
 export default Head;

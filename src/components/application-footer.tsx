@@ -1,7 +1,7 @@
 import React from 'react';
 
 function Footer(): React.FunctionComponentElement<{}> {
-  return (<div></div>);
+  return (<footer></footer>);
 }
 
 export default Footer;
