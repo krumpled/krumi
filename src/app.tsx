@@ -1,23 +1,30 @@
-import { Route, Link, Switch, BrowserRouter as Router } from 'react-router-dom';
-import Head from '@krumpled/krumi/components/application-head';
-import Foot from '@krumpled/krumi/components/application-footer';
-import React from 'react';
+import React, { useEffect, useState } from 'react';  
+import { BrowserRouter as Router } from 'react-router-dom';
+import { render } from 'react-dom';
+import debug from 'debug';
+import { fromNullable } from '@krumpled/krumi/std/option';
+import Header from '@krumpled/krumi/components/application-header';
+import Footer from '@krumpled/krumi/components/application-footer';
 
-export default function run(): React.FunctionComponentElement<{}> {
+const log = debug('krumi:app');
+
+function App(): React.FunctionComponentElement<{}> {
+  const [initial, update] = useState({});
+
+  useEffect(function() {
+    log('hello world');
+  });
+
   return (
     <Router>
-      <Route>
-        <Head />
-        <Switch>
-          <Route path='/login'>
-            I am login
-          </Route>
-          <Route>
-            <Link to='/login'>Login</Link>
-          </Route>
-        </Switch>
-        <Foot />
-      </Route>
+      <Footer key="footer" />
+      <Header key="header" />
     </Router>
   );
 }
+
+function run(): void {
+  render(<App />, document.getElementById('main'));
+}
+
+export default run;
