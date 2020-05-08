@@ -10,6 +10,7 @@ module.exports = {
   },
   extends: [
     'standard',
+    'plugin:@typescript-eslint/recommended',
     'plugin:react/recommended',
     'plugin:prettier/recommended',
   ],
@@ -27,6 +28,6 @@ module.exports = {
     'prettier',
   ],
   rules: {
-    'prettier/prettier': 'error',
-  }
+    'prettier/prettier': ['error', { singleQuote: true }],
+  },
 }

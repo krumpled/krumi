@@ -1,10 +1,10 @@
-import React from "react";
-import debug from "debug";
+import React from 'react';
+import debug from 'debug';
 
-const log = debug("krumi:application-header");
+const log = debug('krumi:application-header');
 
 function header(): React.FunctionComponentElement<{}> {
-  log("rendering header");
+  log('rendering header');
   return <header></header>;
 }
 
