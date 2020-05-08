@@ -11,6 +11,7 @@ module.exports = {
   extends: [
     'standard',
     'plugin:react/recommended',
+    'plugin:prettier/recommended',
   ],
   globals: {
     Atomics: 'readonly',
@@ -22,10 +23,10 @@ module.exports = {
     sourceType: 'module'
   },
   plugins: [
-    '@typescript-eslint'
+    '@typescript-eslint',
+    'prettier',
   ],
   rules: {
-    'semi': ['error', 'always'],
-    'space-before-function-paren': ['error', 'never'],
+    'prettier/prettier': 'error',
   }
 }

@@ -1,3 +1,3 @@
-import run from '@krumpled/krumi/app';
+import run from "@krumpled/krumi/app";
 
 run();

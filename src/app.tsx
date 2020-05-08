@@ -1,17 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
-import { render } from 'react-dom';
-import debug from 'debug';
-import Header from '@krumpled/krumi/components/application-header';
-import Footer from '@krumpled/krumi/components/application-footer';
+import React, { useEffect, useState } from "react";
+import { BrowserRouter as Router } from "react-router-dom";
+import { render } from "react-dom";
+import debug from "debug";
+import Header from "@krumpled/krumi/components/application-header";
+import Footer from "@krumpled/krumi/components/application-footer";
+import config from "@krumpled/krumi/config";
 
-const log = debug('krumi:app');
+const log = debug("krumi:app");
 
 function App(): React.FunctionComponentElement<{}> {
   const [initial, update] = useState({ count: 0 });
+  log("krumi-config: %j", config);
 
-  useEffect(function() {
-    log('application main effect - %o', initial);
+  useEffect(function () {
+    log("application main effect - %o", initial);
 
     if (initial.count === 0) {
       update({ count: 1 });
@@ -27,7 +29,7 @@ function App(): React.FunctionComponentElement<{}> {
 }
 
 function run(): void {
-  render(<App />, document.getElementById('main'));
+  render(<App />, document.getElementById("main"));
 }
 
 export default run;
