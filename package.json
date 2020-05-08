@@ -4,8 +4,8 @@
   "description": "",
   "scripts": {
     "tsc": "tsc --noEmit",
-    "lint": "eslint --ext js,ts,tsx .",
-    "build": "webpack --config webpack.config.js --mode development",
+    "lint:js": "eslint --ext js,ts,tsx .",
+    "build:development": "webpack --config webpack.config.js --mode development",
     "build:release": "webpack --config webpack.config.js --mode production",
     "start": "webpack-dev-server"
   },
