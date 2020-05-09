@@ -28,6 +28,6 @@ module.exports = {
     'prettier',
   ],
   rules: {
-    'prettier/prettier': ['error', { singleQuote: true }],
+    'prettier/prettier': ['error', { singleQuote: true, trailingComma: "all" }],
   },
 }
