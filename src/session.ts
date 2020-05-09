@@ -13,6 +13,7 @@ export type CurrentUser = {
 
 export type Session = {
   user: Option<CurrentUser>;
+  token?: string;
 };
 
 export async function load(token: Option<string>): Promise<Session> {
@@ -25,7 +26,7 @@ export async function load(token: Option<string>): Promise<Session> {
       try {
         const user = await fetch('/auth/identify');
         window.localStorage.setItem(config.session.key, token.data);
-        return { user: fromNullable(user as CurrentUser) };
+        return { user: fromNullable(user as CurrentUser), token: token.data };
       } catch (e) {
         setToken(null);
         window.localStorage.removeItem(config.session.key);
@@ -47,7 +48,7 @@ export async function load(token: Option<string>): Promise<Session> {
 
           try {
             const user = await fetch('/auth/identify');
-            return { user: fromNullable(user as CurrentUser) };
+            return { user: fromNullable(user as CurrentUser), token: key.data };
           } catch (e) {
             setToken(null);
             window.localStorage.removeItem(config.session.key);

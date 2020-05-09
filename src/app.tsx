@@ -94,7 +94,7 @@ function Main(props: { state: State }): React.FunctionComponentElement<{}> {
     case 'loaded':
       return (
         <Router>
-          <Header key="header" />
+          <Header key="header" session={session.data} />
           <Switch>
             <Route extact path="/login">
               <Login session={session.data} />
