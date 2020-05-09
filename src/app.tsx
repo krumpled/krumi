@@ -4,16 +4,18 @@ import {
   Redirect,
   Switch,
   BrowserRouter as Router,
+  useLocation,
 } from 'react-router-dom';
 import { render } from 'react-dom';
 import debug from 'debug';
 import Header from '@krumpled/krumi/components/application-header';
 import Footer from '@krumpled/krumi/components/application-footer';
-import config from '@krumpled/krumi/config';
+import { none, fromNullable } from '@krumpled/krumi/std';
 import {
   failed,
   loaded,
   loading,
+  notAsked,
   AsyncRequest,
 } from '@krumpled/krumi/std/async-request';
 import { Session, load as loadSession } from '@krumpled/krumi/session';
@@ -27,35 +29,59 @@ type State = {
 };
 
 function init(): State {
-  return { session: loading(loadSession()) };
+  return { session: notAsked() };
 }
 
-function App(): React.FunctionComponentElement<{}> {
-  log('krumi-config: %j', config);
-  const [initial, update] = useState(init());
+function AuthCallback(props: {
+  update: (state: State) => void;
+}): React.FunctionComponentElement<{}> {
+  const { search } = useLocation();
+
+  const [[, token] = []] = search
+    .split('?')
+    .reduce((acc, sides) => [...acc, ...sides.split('&')], new Array<string>())
+    .map((pair) => pair.split('='))
+    .filter(([key]) => key === 'token');
+
+  if (!token) {
+    return <Redirect to="/" />;
+  }
+
+  useEffect(() => {
+    log('initiating token exchange');
+    props.update({ session: loading(loadSession(fromNullable(token))) });
+  });
+
+  return <Redirect to="/" />;
+}
+
+function Main(props: { state: State }): React.FunctionComponentElement<{}> {
+  const [state, update] = useState(props.state);
+  log('rendering the main application content');
 
   useEffect(function () {
-    log('application main effect - %o', initial);
+    log('application main effect - %o', state);
 
-    switch (initial.session.kind) {
+    switch (state.session.kind) {
       case 'loading': {
         log('session request pending, waiting and sending update');
-        initial.session.promise
-          .then((data) => update({ ...initial, session: loaded(data) }))
-          .catch((e) => update({ ...initial, session: failed([e]) }));
+        state.session.promise
+          .then((data) => update({ ...state, session: loaded(data) }))
+          .catch((e) => update({ ...state, session: failed([e]) }));
         break;
       }
       case 'not-asked': {
-        log('session not asked');
+        log('session still uninitialized, initiating request now');
+        update({ session: loading(loadSession(none())) });
         break;
       }
       default: {
-        log('update w/ strange session state "%s"', initial.session.kind);
+        log('update w/ strange session state "%s"', state.session.kind);
       }
     }
   });
 
-  const { session } = initial;
+  const { session } = state;
 
   switch (session.kind) {
     case 'not-asked':
@@ -94,6 +120,35 @@ function App(): React.FunctionComponentElement<{}> {
         </main>
       );
   }
+}
+
+function App(): React.FunctionComponentElement<{}> {
+  const [state, update] = useState(init());
+
+  useEffect(() => {
+    log('application render, session currently "%s"', state.session.kind);
+
+    switch (state.session.kind) {
+      case 'loading':
+        debug('session in a loading state, queing updates on resolution');
+        state.session.promise
+          .then((sesion) => update({ ...state, session: loaded(sesion) }))
+          .catch((error) => update({ ...state, session: failed([error]) }));
+    }
+  });
+
+  return (
+    <Router>
+      <Switch>
+        <Route path="/auth/callback">
+          <AuthCallback update={(state): void => update(state)} />
+        </Route>
+        <Route>
+          <Main state={state} />
+        </Route>
+      </Switch>
+    </Router>
+  );
 }
 
 function run(): void {

@@ -23,6 +23,12 @@ module.exports = async function () {
     module: {
       rules: [
         {
+          enforce: 'pre',
+          test: /\.js|ts|tsx$/,
+          exclude: /node_modules/,
+          loader: 'eslint-loader',
+        },
+        {
           test: /\.tsx?$/,
           use: 'ts-loader',
           exclude: /node_modules/,
