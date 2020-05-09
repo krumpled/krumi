@@ -1,6 +1,6 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Session } from '@krumpled/krumi/session';
-import config from '@krumpled/krumi/config';
 import debug from 'debug';
 
 const log = debug('krumi:application-header');
@@ -12,14 +12,13 @@ function Header({
 }): React.FunctionComponentElement<{}> {
   switch (session.user.kind) {
     case 'some': {
-      log(
-        'user authenticated, rendering authed header for token: {}',
-        session.token,
-      );
-      const logout = `${config.krumnet.url}/auth/destroy?token=${session.token}`;
+      log('rendering authed header for token: {}', session.token);
       return (
         <header>
-          <a href={logout}>logout</a>
+          <aside>
+            <Link to="/auth/logout">logout</Link>
+            <p>{session.user.data.name}</p>
+          </aside>
         </header>
       );
     }

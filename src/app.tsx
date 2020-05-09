@@ -21,6 +21,7 @@ import {
 import { Session, load as loadSession } from '@krumpled/krumi/session';
 import Login from '@krumpled/krumi/routes/login';
 import Home from '@krumpled/krumi/routes/home';
+import config from '@krumpled/krumi/config';
 
 const log = debug('krumi:app');
 
@@ -93,7 +94,7 @@ function Main(props: { state: State }): React.FunctionComponentElement<{}> {
       );
     case 'loaded':
       return (
-        <Router>
+        <section data-role="loaded-session">
           <Header key="header" session={session.data} />
           <Switch>
             <Route extact path="/login">
@@ -110,15 +111,49 @@ function Main(props: { state: State }): React.FunctionComponentElement<{}> {
             </Route>
           </Switch>
           <Footer session={session.data} />
-        </Router>
+        </section>
       );
     case 'failed':
       log('unable to load session %o', session.errors);
       return (
-        <main data-role="main" data-state="failed">
+        <section data-role="main" data-state="failed">
           <p>The application is currently unavailable</p>
-        </main>
+        </section>
       );
+  }
+}
+
+function Logout({
+  state,
+  update,
+}: {
+  state: State;
+  update: (state: State) => void;
+}): React.FunctionComponentElement<{}> {
+  const { session } = state;
+  log('rendering logout route...');
+
+  useEffect(() => {
+    if (session.kind === 'not-asked') {
+      update({ ...state, session: loading(loadSession(none())) });
+    }
+  });
+
+  switch (session.kind) {
+    case 'loaded': {
+      const token = session.data.token;
+      const destination = `${config.krumnet.url}/auth/destroy?token=${token}`;
+      window.location.replace(destination);
+      return <div></div>;
+    }
+    case 'not-asked': {
+      return <div>loading...</div>;
+    }
+    case 'loading': {
+      return <div>loading...</div>;
+    }
+    default:
+      return <Redirect to="/" />;
   }
 }
 
@@ -140,6 +175,9 @@ function App(): React.FunctionComponentElement<{}> {
   return (
     <Router>
       <Switch>
+        <Route path="/auth/logout">
+          <Logout state={state} update={(state): void => update(state)} />
+        </Route>
         <Route path="/auth/callback">
           <AuthCallback update={(state): void => update(state)} />
         </Route>
