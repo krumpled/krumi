@@ -23,6 +23,23 @@ module.exports = async function () {
     module: {
       rules: [
         {
+          test: /\.css$/,
+          use: [
+            'style-loader',
+            { loader: 'css-loader', options: { importLoaders: 1 } },
+            {
+              loader: 'postcss-loader',
+              options: {
+                ident: 'postcss',
+                plugins: [
+                  require('tailwindcss'),
+                  require('autoprefixer'),
+                ],
+              },
+            },
+          ]
+        },
+        {
           enforce: 'pre',
           test: /\.js|ts|tsx$/,
           exclude: /node_modules/,
