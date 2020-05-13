@@ -14,17 +14,22 @@ function Header({
     case 'some': {
       log('rendering authed header for token: {}', session.token);
       return (
-        <header>
-          <aside>
+        <header className="flex bg-gray-900 px-8 py-5 items-center">
+          <aside data-role="header-left" className="flex items-center">
+            <div data-role="reserved" className="px-10 py-2" />
+            <Link to="/new-game">New Game</Link>
+          </aside>
+          <aside data-role="header-right" className="ml-auto flex items-center">
+            <p className="mr-3">{session.user.data.name}</p>
             <Link to="/auth/logout">logout</Link>
-            <p>{session.user.data.name}</p>
           </aside>
         </header>
       );
     }
     case 'none':
-      log('no user, rendering unauth header');
-      return <header></header>;
+      return (
+        <header className="flex bg-gray-900 px-8 py-5 items-center"></header>
+      );
   }
 }
 

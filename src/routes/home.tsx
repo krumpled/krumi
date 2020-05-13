@@ -12,18 +12,13 @@ export type Props = {
 function Home(props: Props): React.FunctionComponentElement<{}> {
   const { user } = props.session;
 
-  switch (user.kind) {
-    case 'none':
-      log('no current user, redirecting to loging');
-      return <Redirect to="/login" />;
-    case 'some':
-      log('user logged in, rendering content');
-      return (
-        <section data-role="home">
-          <p>home</p>
-        </section>
-      );
+  if (user.kind === 'none') {
+    log('no current user, redirecting to loging');
+    return <Redirect to="/login" />;
   }
+
+  log('user logged in, rendering content');
+  return <section data-role="home" className="px-8 py-5"></section>;
 }
 
 export default Home;

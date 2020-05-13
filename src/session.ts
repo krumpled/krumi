@@ -16,6 +16,10 @@ export type Session = {
   token?: string;
 };
 
+export function isAuthenticated(session: Session): boolean {
+  return session.user.kind === 'some';
+}
+
 export async function load(token: Option<string>): Promise<Session> {
   log("attempting to load session, provided '%s'", token.kind);
 

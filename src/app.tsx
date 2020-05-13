@@ -10,6 +10,8 @@ import { render } from 'react-dom';
 import debug from 'debug';
 import Header from '@krumpled/krumi/components/application-header';
 import Footer from '@krumpled/krumi/components/application-footer';
+import Loading from '@krumpled/krumi/components/application-loading';
+import ApplicationError from '@krumpled/krumi/components/application-error';
 import { none, fromNullable } from '@krumpled/krumi/std';
 import {
   failed,
@@ -20,8 +22,9 @@ import {
 } from '@krumpled/krumi/std/async-request';
 import { Session, load as loadSession } from '@krumpled/krumi/session';
 import Login from '@krumpled/krumi/routes/login';
+import NewGame from '@krumpled/krumi/routes/new-game';
 import Home from '@krumpled/krumi/routes/home';
-import config from '@krumpled/krumi/config';
+import Logout from '@krumpled/krumi/routes/logout';
 
 const log = debug('krumi:app');
 
@@ -87,11 +90,7 @@ function Main(props: { state: State }): React.FunctionComponentElement<{}> {
   switch (session.kind) {
     case 'not-asked':
     case 'loading':
-      return (
-        <main data-role="main" data-state="not-asked">
-          <p>Loading...</p>
-        </main>
-      );
+      return <Loading />;
     case 'loaded':
       return (
         <section data-role="loaded-session">
@@ -100,11 +99,18 @@ function Main(props: { state: State }): React.FunctionComponentElement<{}> {
             <Route extact path="/login">
               <Login session={session.data} />
             </Route>
-            <Route extact path="/account">
-              <div>this is account</div>
-            </Route>
             <Route extact path="/home">
               <Home session={session.data} />
+            </Route>
+            <Route extact path="/lobbies/:id">
+              {session.data.user.kind === 'none' ? (
+                <Redirect to="/login" />
+              ) : (
+                <div></div>
+              )}
+            </Route>
+            <Route extact path="/new-game">
+              <NewGame session={session.data} />
             </Route>
             <Route>
               <Redirect to="/login" />
@@ -115,45 +121,7 @@ function Main(props: { state: State }): React.FunctionComponentElement<{}> {
       );
     case 'failed':
       log('unable to load session %o', session.errors);
-      return (
-        <section data-role="main" data-state="failed">
-          <p>The application is currently unavailable</p>
-        </section>
-      );
-  }
-}
-
-function Logout({
-  state,
-  update,
-}: {
-  state: State;
-  update: (state: State) => void;
-}): React.FunctionComponentElement<{}> {
-  const { session } = state;
-  log('rendering logout route...');
-
-  useEffect(() => {
-    if (session.kind === 'not-asked') {
-      update({ ...state, session: loading(loadSession(none())) });
-    }
-  });
-
-  switch (session.kind) {
-    case 'loaded': {
-      const token = session.data.token;
-      const destination = `${config.krumnet.url}/auth/destroy?token=${token}`;
-      window.location.replace(destination);
-      return <div></div>;
-    }
-    case 'not-asked': {
-      return <div>loading...</div>;
-    }
-    case 'loading': {
-      return <div>loading...</div>;
-    }
-    default:
-      return <Redirect to="/" />;
+      return <ApplicationError errors={session.errors} />;
   }
 }
 
