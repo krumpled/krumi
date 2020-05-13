@@ -31,13 +31,10 @@ module.exports = async function () {
               loader: 'postcss-loader',
               options: {
                 ident: 'postcss',
-                plugins: [
-                  require('tailwindcss'),
-                  require('autoprefixer'),
-                ],
+                plugins: [require('tailwindcss'), require('autoprefixer')],
               },
             },
-          ]
+          ],
         },
         {
           enforce: 'pre',
