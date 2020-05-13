@@ -8,14 +8,17 @@ export function fromNullable<T>(item: T | undefined | null): Option<T> {
     : { data: item, kind: 'some' };
 }
 
-export function map<T>(option: Option<T>): Option<T> {
-  return option;
-}
-
 export function some<T>(data: T): Option<T> {
   return { kind: 'some', data };
 }
 
 export function none<T>(): Option<T> {
   return { kind: 'none' };
+}
+
+export function map<T, U>(
+  option: Option<T>,
+  mapper: (inner: T) => U,
+): Option<U> {
+  return option.kind === 'some' ? some(mapper(option.data)) : none();
 }
