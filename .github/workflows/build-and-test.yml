@@ -1,0 +1,15 @@
+name: gh.build-and-test
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: node:10
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install dependencies
+        run: npm i
+      - name: Build
+        run: npm run build:development
+      - name: Lint
+        run: npm run lint:js
