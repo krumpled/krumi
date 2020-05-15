@@ -15,7 +15,10 @@ function Login(props: {
   switch (user.kind) {
     case 'none':
       return (
-        <section data-role="login" className="py-10 px-10 my-10 text-center">
+        <section
+          data-role="login"
+          className="py-10 x-gutters y-content text-center"
+        >
           <a
             href={loginUrl()}
             className="inline-block px-6 py-3 bg-white rounded text-center"

@@ -14,10 +14,14 @@ function Header({
     case 'some': {
       log('rendering authed header for token: {}', session.token);
       return (
-        <header className="flex bg-gray-900 px-8 py-5 items-center">
+        <header className="flex bg-gray-900 x-gutters py-5 items-center">
           <aside data-role="header-left" className="flex items-center">
-            <div data-role="reserved" className="px-10 py-2" />
-            <Link to="/new-game">New Game</Link>
+            <Link to="/home" className="block mr-5 px-2">
+              Home
+            </Link>
+            <Link to="/new-game" className="block px-2">
+              New Game
+            </Link>
           </aside>
           <aside data-role="header-right" className="ml-auto flex items-center">
             <p className="mr-3">{session.user.data.name}</p>

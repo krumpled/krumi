@@ -23,6 +23,7 @@ import {
 import { Session, load as loadSession } from '@krumpled/krumi/session';
 import Login from '@krumpled/krumi/routes/login';
 import NewGame from '@krumpled/krumi/routes/new-game';
+import Lobby from '@krumpled/krumi/routes/lobby';
 import Home from '@krumpled/krumi/routes/home';
 import Logout from '@krumpled/krumi/routes/logout';
 
@@ -36,6 +37,8 @@ function init(): State {
   return { session: notAsked() };
 }
 
+// The AuthCallback route handles pulling the token out of the url query params and attempting to load the session
+// using it, immediately calling the update of our `Main` state and rendering a redirect back to home.
 function AuthCallback(props: {
   update: (state: State) => void;
 }): React.FunctionComponentElement<{}> {
@@ -93,7 +96,7 @@ function Main(props: { state: State }): React.FunctionComponentElement<{}> {
       return <Loading />;
     case 'loaded':
       return (
-        <section data-role="loaded-session">
+        <section data-role="loaded-session" className="main-contents">
           <Header key="header" session={session.data} />
           <Switch>
             <Route extact path="/login">
@@ -103,11 +106,7 @@ function Main(props: { state: State }): React.FunctionComponentElement<{}> {
               <Home session={session.data} />
             </Route>
             <Route extact path="/lobbies/:id">
-              {session.data.user.kind === 'none' ? (
-                <Redirect to="/login" />
-              ) : (
-                <div></div>
-              )}
+              <Lobby session={session.data} />
             </Route>
             <Route extact path="/new-game">
               <NewGame session={session.data} />
@@ -125,6 +124,8 @@ function Main(props: { state: State }): React.FunctionComponentElement<{}> {
   }
 }
 
+// The App componet inititalizes it's sesison state to `not-asked`, letting either the `Main` component **or** the
+// `/auth/callback` route `update` to a `loading` state.
 function App(): React.FunctionComponentElement<{}> {
   const [state, update] = useState(init());
 

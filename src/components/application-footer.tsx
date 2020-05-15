@@ -10,7 +10,7 @@ type Props = {
 
 function footer(props: Props): React.FunctionComponentElement<{}> {
   log('rendering footer, against session %o', props.session);
-  return <footer></footer>;
+  return <footer className="x-gutters py-2 bg-gray-900"></footer>;
 }
 
 export default footer;

@@ -18,7 +18,11 @@ function Home(props: Props): React.FunctionComponentElement<{}> {
   }
 
   log('user logged in, rendering content');
-  return <section data-role="home" className="px-8 py-5"></section>;
+  return (
+    <section data-role="home" className="x-gutters y-content py-5">
+      <aside>Hello</aside>
+    </section>
+  );
 }
 
 export default Home;
