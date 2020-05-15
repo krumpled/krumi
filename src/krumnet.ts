@@ -1,6 +1,7 @@
-import config from '@krumpled/krumi/config';
 import axios from 'axios';
 import debug from 'debug';
+import config from '@krumpled/krumi/config';
+import { Result, ok, err } from '@krumpled/krumi/std';
 
 const log = debug('krumi:krumnet');
 
@@ -14,15 +15,23 @@ function authorizationHeaders(): object {
   return { Authorization: authorization.token };
 }
 
-export async function fetch(path: string): Promise<object> {
+export async function fetch(
+  path: string,
+  params?: object,
+): Promise<Result<object>> {
   const uri = `${config.krumnet.url}${path}`;
   log('fetching "%s"', uri);
   const headers = { ...authorizationHeaders() };
-  const result = await axios(uri, { headers });
-  return result.data;
+
+  try {
+    const result = await axios(uri, { headers, params });
+    return ok(result.data);
+  } catch (e) {
+    return err([e]);
+  }
 }
 
-export async function post<T>(path: string, data?: T): Promise<object> {
+export async function post<T>(path: string, data?: T): Promise<Result<object>> {
   const uri = `${config.krumnet.url}${path}`;
   const headers = { ...authorizationHeaders() };
   log('posting to "%s"', uri);
@@ -31,7 +40,10 @@ export async function post<T>(path: string, data?: T): Promise<object> {
     log('serializing payload for network');
   }
 
-  await axios.post(uri, data, { headers });
-
-  return {};
+  try {
+    const { data: response } = await axios.post(uri, data, { headers });
+    return ok(response);
+  } catch (e) {
+    return err([e]);
+  }
 }

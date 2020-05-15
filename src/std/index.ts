@@ -1,4 +1,10 @@
-import { Option, fromNullable, none, some } from '@krumpled/krumi/std/option';
+import {
+  Option,
+  fromNullable,
+  map as mapOption,
+  none,
+  some,
+} from '@krumpled/krumi/std/option';
 import { Result, ok, err, map as mapResult } from '@krumpled/krumi/std/result';
 import {
   AsyncRequest,
@@ -10,6 +16,17 @@ import {
 
 export function always<T>(item: T): () => T {
   return (): T => item;
+}
+
+export function resultToMaybe<T>(res: Result<T>): Option<T> {
+  switch (res.kind) {
+    case 'err':
+      return none();
+    case 'ok': {
+      const { data } = res;
+      return some(data);
+    }
+  }
 }
 
 export {
@@ -26,4 +43,5 @@ export {
   ok,
   Result,
   mapResult,
+  mapOption,
 };

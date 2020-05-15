@@ -13,11 +13,9 @@ import {
   loaded,
   failed,
   Result,
-  mapResult,
-  ok,
   err,
 } from '@krumpled/krumi/std';
-import { post } from '@krumpled/krumi/krumnet';
+import { post, fetch } from '@krumpled/krumi/krumnet';
 
 const log = debug('krumi:route.new-game');
 
@@ -32,14 +30,38 @@ export type State = {
 async function createAndPoll(): Promise<Result<{ id: string }>> {
   log('attempting to create a new game');
 
-  const lobby = await post('/provision-lobby')
-    .then(ok)
-    .catch((e) => err([e]));
+  const lobby = (await post('/lobbies', {
+    kind: `${window.performance.now()}`,
+  })) as Result<{
+    id: string;
+  }>;
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  log('lobby provisioning started (%o), polling for finish', lobby);
+  if (lobby.kind === 'err') {
+    return lobby;
+  }
 
-  return mapResult(lobby, () => ({ id: 's-hello-world' }));
+  let count = 0;
+
+  while (++count < 1000) {
+    const job = (await fetch('/jobs', { id: lobby.data.id })) as Result<{
+      id: string;
+      result: null | {};
+    }>;
+
+    if (job.kind === 'err') {
+      return job;
+    }
+
+    if (job.data.result) {
+      log('lobby provisioning started (%o), polling for finish', lobby);
+      return job;
+    }
+
+    log('lobby "%s" still provisioning, delay + continue', job.data.id);
+    await new Promise((resolve) => setTimeout(resolve, 1000 + count * 100));
+  }
+
+  return err([new Error('too many attempts')]);
 }
 
 function init(): State {
@@ -79,7 +101,11 @@ function NewGame(props: Props): React.FunctionComponentElement<{}> {
   switch (state.attempt.kind) {
     case 'not-asked':
     case 'loading':
-      return <Loading />;
+      return (
+        <section className="y-content">
+          <Loading />
+        </section>
+      );
     case 'loaded': {
       const { data: attempt } = state.attempt;
 
