@@ -9,6 +9,7 @@ import { AuthenticatedRoute } from '@krumpled/krumi/routing-utilities';
 import {
   AsyncRequest,
   loading,
+  ok,
   notAsked,
   loaded,
   failed,
@@ -27,6 +28,17 @@ export type State = {
   attempt: AsyncRequest<Result<{ id: string }>>;
 };
 
+type QueuedJob = {
+  id: string;
+  result: null | {
+    kind: string;
+    data: {
+      kind: string;
+      data: { id: string };
+    };
+  };
+};
+
 async function createAndPoll(): Promise<Result<{ id: string }>> {
   log('attempting to create a new game');
 
@@ -41,20 +53,19 @@ async function createAndPoll(): Promise<Result<{ id: string }>> {
   }
 
   let count = 0;
+  const query = { id: lobby.data.id };
 
   while (++count < 1000) {
-    const job = (await fetch('/jobs', { id: lobby.data.id })) as Result<{
-      id: string;
-      result: null | {};
-    }>;
+    const job = (await fetch('/jobs', query)) as Result<QueuedJob>;
 
     if (job.kind === 'err') {
       return job;
     }
 
     if (job.data.result) {
-      log('lobby provisioning started (%o), polling for finish', lobby);
-      return job;
+      const { id } = job.data.result.data.data;
+      log('job has finished w/ result %o', id);
+      return ok({ id });
     }
 
     log('lobby "%s" still provisioning, delay + continue', job.data.id);
