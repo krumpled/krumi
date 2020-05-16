@@ -4,6 +4,7 @@ import { AuthenticatedRoute } from '@krumpled/krumi/routing-utilities';
 import Loading from '@krumpled/krumi/components/application-loading';
 import ApplicationError from '@krumpled/krumi/components/application-error';
 import { Session } from '@krumpled/krumi/session';
+import { fetch } from '@krumpled/krumi/krumnet';
 import {
   AsyncRequest,
   failed,
@@ -26,6 +27,9 @@ type State = {
 
 async function loadLobby(id: string): Promise<{ id: string }> {
   await new Promise((resolve) => setTimeout(resolve, 3000));
+
+  await fetch(`/lobbies/${id}`);
+
   return { id };
 }
 
