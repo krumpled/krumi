@@ -7,6 +7,17 @@ const log = debug('krumi:krumnet');
 
 const authorization: { token: null | string } = { token: null };
 
+export type QueuedJob = {
+  id: string;
+  result: null | {
+    kind: string;
+    data: {
+      kind: string;
+      data: { id: string };
+    };
+  };
+};
+
 export function setToken(token: string | null): void {
   authorization.token = token;
 }
@@ -46,4 +57,39 @@ export async function post<T>(path: string, data?: T): Promise<Result<object>> {
   } catch (e) {
     return err([e]);
   }
+}
+
+export async function createAndPoll<T>(
+  path: string,
+  data?: T,
+): Promise<Result<{ id: string }>> {
+  const job = (await post(path, data)) as Result<{ id: string }>;
+
+  if (job.kind === 'err') {
+    return job;
+  }
+
+  let count = 0;
+  const query = { id: job.data.id };
+
+  while (++count < 1000) {
+    const job = (await fetch('/jobs', query)) as Result<QueuedJob>;
+
+    if (job.kind === 'err') {
+      return job;
+    }
+
+    if (job.data.result) {
+      const { id } = job.data.result.data.data;
+      log('job has finished w/ result %o', id);
+      return ok({ id });
+    }
+
+    log('lobby "%s" still provisioning, delay + continue', job.data.id);
+    await new Promise((resolve) => setTimeout(resolve, 1000 + count * 100));
+  }
+
+  return err([
+    new Error(`job ${job.data.id} not finished after ${count} attempts`),
+  ]);
 }

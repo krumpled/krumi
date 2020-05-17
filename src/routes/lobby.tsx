@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { AuthenticatedRoute } from '@krumpled/krumi/routing-utilities';
 import Loading from '@krumpled/krumi/components/application-loading';
 import ApplicationError from '@krumpled/krumi/components/application-error';
@@ -70,7 +70,15 @@ function Lobby(props: Props): React.FunctionComponentElement<{}> {
     case 'not-asked':
       return <Loading />;
     case 'loaded':
-      return <section className="y-content x-gutters"></section>;
+      return (
+        <section className="y-content x-gutters">
+          <aside data-role="sidebar">
+            <Link to={`/lobbies/${state.id}/new-game`}>New Game</Link>
+          </aside>
+          <aside data-role="members"></aside>
+          <aside data-role="other"></aside>
+        </section>
+      );
     case 'failed':
       return <ApplicationError errors={state.data.errors} />;
   }

@@ -19,8 +19,8 @@ function Header({
             <Link to="/home" className="block mr-5 px-2">
               Home
             </Link>
-            <Link to="/new-game" className="block px-2">
-              New Game
+            <Link to="/new-lobby" className="block px-2">
+              New Lobby
             </Link>
           </aside>
           <aside data-role="header-right" className="ml-auto flex items-center">
