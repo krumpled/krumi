@@ -1,135 +1,92 @@
-import React, { useState, useEffect } from 'react';
-import { Redirect } from 'react-router-dom';
-import debug from 'debug';
-
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { AuthenticatedRoute } from '@krumpled/krumi/routing-utilities';
 import Loading from '@krumpled/krumi/components/application-loading';
 import ApplicationError from '@krumpled/krumi/components/application-error';
-import { Session, isAuthenticated } from '@krumpled/krumi/session';
-import { AuthenticatedRoute } from '@krumpled/krumi/routing-utilities';
+import { createAndPoll } from '@krumpled/krumi/krumnet';
 import {
-  AsyncRequest,
-  loading,
-  ok,
-  notAsked,
-  loaded,
-  failed,
   Result,
-  err,
+  underscoreKeys,
+  AsyncRequest,
+  notAsked,
+  loading,
+  failed,
+  loaded,
 } from '@krumpled/krumi/std';
-import { post, fetch } from '@krumpled/krumi/krumnet';
+import debug from 'debug';
 
 const log = debug('krumi:route.new-game');
 
-export type Props = {
-  session: Session;
+type State = {
+  lobbyId: string;
+  request: AsyncRequest<Result<{ id: string }>>;
 };
-
-export type State = {
-  attempt: AsyncRequest<Result<{ id: string }>>;
-};
-
-type QueuedJob = {
-  id: string;
-  result: null | {
-    kind: string;
-    data: {
-      kind: string;
-      data: { id: string };
-    };
-  };
-};
-
-async function createAndPoll(): Promise<Result<{ id: string }>> {
-  log('attempting to create a new game');
-
-  const lobby = (await post('/lobbies', {
-    kind: `${window.performance.now()}`,
-  })) as Result<{
-    id: string;
-  }>;
-
-  if (lobby.kind === 'err') {
-    return lobby;
-  }
-
-  let count = 0;
-  const query = { id: lobby.data.id };
-
-  while (++count < 1000) {
-    const job = (await fetch('/jobs', query)) as Result<QueuedJob>;
-
-    if (job.kind === 'err') {
-      return job;
-    }
-
-    if (job.data.result) {
-      const { id } = job.data.result.data.data;
-      log('job has finished w/ result %o', id);
-      return ok({ id });
-    }
-
-    log('lobby "%s" still provisioning, delay + continue', job.data.id);
-    await new Promise((resolve) => setTimeout(resolve, 1000 + count * 100));
-  }
-
-  return err([new Error('too many attempts')]);
-}
 
 function init(): State {
-  return { attempt: notAsked() };
+  const { id: lobbyId } = useParams();
+  return { lobbyId, request: notAsked() };
 }
 
-function NewGame(props: Props): React.FunctionComponentElement<{}> {
-  log('kicking off a new game, hopefully');
+async function createGame(lobbyId: string): Promise<Result<{ id: string }>> {
+  log('creating game for lobby "%s"', lobbyId);
+  const game = await createAndPoll('/games', underscoreKeys({ lobbyId }));
+  return game;
+}
 
-  if (!isAuthenticated(props.session)) {
-    return <Redirect to="/login" />;
-  }
-
+function NewGame(): React.FunctionComponentElement<{}> {
   const [state, update] = useState(init());
 
   useEffect(() => {
-    switch (state.attempt.kind) {
-      case 'not-asked':
-        log('provisioning attempt initializing');
-        update({ ...state, attempt: loading(createAndPoll()) });
+    switch (state.request.kind) {
+      case 'not-asked': {
+        debug('new game request no asked, sending now');
+        const promise = createGame(state.lobbyId);
+
+        update({ ...state, request: loading(promise) });
+
+        promise
+          .then((data) => update({ ...state, request: loaded(data) }))
+          .catch((e) => update({ ...state, request: failed([e]) }));
+
         break;
+      }
+      case 'loaded': {
+        const { data: result } = state.request;
+
+        if (result.kind === 'err') {
+          return;
+        }
+
+        const { id: gameId } = result.data;
+        log('new game created - "%s"', gameId);
+        break;
+      }
       case 'loading':
-        log('new game request is in flight, awaiting promise');
-        state.attempt.promise
-          .then((res) => update({ ...state, attempt: loaded(res) }))
-          .catch((e) => update({ ...state, attempt: failed([e]) }));
-        break;
-      case 'loaded':
-        log('new game request finished - %o', state.attempt.data);
+        log('game creation in flight');
         break;
       case 'failed':
-        log('new game attempt failed - %o', state.attempt.errors);
+        log('game creation failed - %o', state.request.errors);
         break;
     }
   });
 
-  switch (state.attempt.kind) {
-    case 'not-asked':
-    case 'loading':
-      return (
-        <section className="y-content">
-          <Loading />
-        </section>
-      );
-    case 'loaded': {
-      const { data: attempt } = state.attempt;
+  const { request } = state;
 
-      if (attempt.kind === 'err') {
-        return <ApplicationError errors={attempt.errors} />;
+  switch (request.kind) {
+    case 'loading':
+    case 'not-asked':
+      return <Loading />;
+    case 'loaded': {
+      const { data: result } = request;
+
+      if (result.kind === 'err') {
+        return <ApplicationError errors={result.errors} />;
       }
 
-      log('successfully loaded - %o', attempt.data);
-      const { id } = attempt.data;
-      return <Redirect to={`/lobbies/${id}`} />;
+      return <div></div>;
     }
     case 'failed':
-      return <ApplicationError errors={state.attempt.errors} />;
+      return <ApplicationError errors={request.errors} />;
   }
 }
 

@@ -22,6 +22,7 @@ import {
 } from '@krumpled/krumi/std/async-request';
 import { Session, load as loadSession } from '@krumpled/krumi/session';
 import Login from '@krumpled/krumi/routes/login';
+import NewLobby from '@krumpled/krumi/routes/new-lobby';
 import NewGame from '@krumpled/krumi/routes/new-game';
 import Lobby from '@krumpled/krumi/routes/lobby';
 import Home from '@krumpled/krumi/routes/home';
@@ -105,11 +106,14 @@ function Main(props: { state: State }): React.FunctionComponentElement<{}> {
             <Route extact path="/home">
               <Home session={session.data} />
             </Route>
+            <Route extact path="/lobbies/:id/new-game">
+              <NewGame session={session.data} />
+            </Route>
             <Route extact path="/lobbies/:id">
               <Lobby session={session.data} />
             </Route>
-            <Route extact path="/new-game">
-              <NewGame session={session.data} />
+            <Route extact path="/new-lobby">
+              <NewLobby session={session.data} />
             </Route>
             <Route>
               <Redirect to="/login" />

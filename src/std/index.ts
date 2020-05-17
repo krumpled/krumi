@@ -18,6 +18,23 @@ export function always<T>(item: T): () => T {
   return (): T => item;
 }
 
+function separateWords(
+  input: string,
+  options?: { separator?: string; split?: string },
+): string {
+  const separator = options?.separator || '_';
+  const split = options?.split || /(?=[A-Z])/;
+  return input.split(split).join(separator);
+}
+
+export function underscoreKeys(input: object): object {
+  return Object.keys(input).reduce((acc, k) => {
+    const underscored = separateWords(k).toLowerCase();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return { ...acc, [underscored]: (input as any)[k] } as any;
+  }, {} as object);
+}
+
 export function resultToMaybe<T>(res: Result<T>): Option<T> {
   switch (res.kind) {
     case 'err':
