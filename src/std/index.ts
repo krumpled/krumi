@@ -2,6 +2,7 @@ import {
   Option,
   fromNullable,
   map as mapOption,
+  unwrapOr as unwrapOptionOr,
   none,
   some,
 } from '@krumpled/krumi/std/option';
@@ -34,8 +35,17 @@ function camelize(input: string): string {
   return replaced.substr(0, 1).toLowerCase() + replaced.substr(1);
 }
 
-export function camelizeKeys(input: object): object {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function camelizeKeys(input: any): any {
   if (typeof input !== 'object') {
+    return input;
+  }
+
+  if (typeof input === 'string') {
+    return camelize(input);
+  }
+
+  if (!input) {
     return input;
   }
 
@@ -61,9 +71,23 @@ export function camelizeKeys(input: object): object {
   }, {} as object);
 }
 
-export function underscoreKeys(input: object): object {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function underscoreKeys(input: any): any {
   if (typeof input !== 'object') {
     return input;
+  }
+
+  if (typeof input === 'string') {
+    const underscored = separateWords(input).toLowerCase();
+    return underscored;
+  }
+
+  if (!input) {
+    return input;
+  }
+
+  if (Array.isArray(input)) {
+    return input.map(underscoreKeys(input));
   }
 
   return Object.keys(input).reduce((acc, k) => {
@@ -99,4 +123,5 @@ export {
   Result,
   mapResult,
   mapOption,
+  unwrapOptionOr,
 };
