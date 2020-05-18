@@ -67,6 +67,10 @@ async function loadFromStorage(): Promise<Session> {
           SessionPayload
         >;
 
+        if (result.kind === 'err') {
+          return reset();
+        }
+
         const user = mapMaybe(resultToMaybe(result), ({ user }) => user);
         return { user, token: key.data };
       } catch (e) {

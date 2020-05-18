@@ -8,6 +8,7 @@ import {
   loading,
   notAsked,
 } from '@krumpled/krumi/std';
+import { fetch } from '@krumpled/krumi/krumnet';
 import ApplicationError from '@krumpled/krumi/components/application-error';
 import Loading from '@krumpled/krumi/components/application-loading';
 import debug from 'debug';
@@ -28,7 +29,11 @@ export type State = {
 async function load(lobbyId: string, gameId: string): Promise<Details> {
   const lobby = { id: lobbyId };
   const game = { id: gameId };
+
+  await fetch(`/games`, { ids: [game.id] });
+
   await new Promise((resolve) => setTimeout(resolve, 1200));
+
   return { lobby, game };
 }
 
