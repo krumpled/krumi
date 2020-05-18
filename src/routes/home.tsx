@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import moment from 'moment';
 import { AuthenticatedRoute } from '@krumpled/krumi/routing-utilities';
 import {
   Result,
@@ -25,6 +26,7 @@ export type Props = {
 export type LobbyInfo = {
   id: string;
   name: string;
+  created: number;
 };
 
 type State = {
@@ -32,7 +34,7 @@ type State = {
 };
 
 type LobbyResponse = {
-  lobbies: Array<{ id: string; name: string }>;
+  lobbies: Array<LobbyInfo>;
 };
 
 async function loadLobbies(): Promise<Array<LobbyInfo>> {
@@ -54,9 +56,19 @@ function init(): State {
 
 function renderLobby(lobby: LobbyInfo): React.FunctionComponentElement<{}> {
   return (
-    <div data-role="lobby" data-lobby-id={lobby.id} key={lobby.id}>
-      <Link to={`/lobbies/${lobby.id}`}>{lobby.name}</Link>
-    </div>
+    <li
+      data-role="lobby"
+      data-lobby-id={lobby.id}
+      key={lobby.id}
+      className="flex py-2 items-center"
+    >
+      <Link to={`/lobbies/${lobby.id}`} className="block pr-2">
+        {lobby.name}
+      </Link>
+      <span className="block">
+        created <span>{moment(lobby.created).fromNow()}</span>
+      </span>
+    </li>
   );
 }
 
@@ -95,11 +107,27 @@ function Home(): React.FunctionComponentElement<{}> {
         </section>
       );
     case 'loaded': {
-      const list = lobbies.data.map(renderLobby);
+      const list = lobbies.data.length ? (
+        lobbies.data.map(renderLobby)
+      ) : (
+        <li className="py-2">
+          No lobbies found, <Link to="/new-lobby">click here</Link> to create a
+          new one.
+        </li>
+      );
       log('finished loadding lobbies %o', lobbies.data);
       return (
-        <section data-role="home" className="x-gutters y-content y-gutters">
-          <aside data-role="lobby-list">{list}</aside>
+        <section
+          data-role="home"
+          className="x-gutters y-content y-gutters flex"
+        >
+          <aside data-role="lobby-list block pr-4">
+            <header className="flex pb-2 mb-2">
+              <h2 className="block pr-2">Lobbies</h2>
+              <Link to="/new-lobby">New</Link>
+            </header>
+            <ul>{list}</ul>
+          </aside>
         </section>
       );
     }

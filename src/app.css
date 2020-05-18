@@ -35,3 +35,18 @@ a {
   position: relative;
   min-height: calc(100% - 40px);
 }
+
+.input-white {
+  @apply block;
+  @apply px-3;
+  @apply py-2;
+  @apply text-gray-900;
+  @apply rounded-sm;
+  @apply border;
+  @apply border-gray-100;
+}
+
+.input-white[disabled] {
+  @apply bg-gray-100;
+  @apply text-gray-500;
+}

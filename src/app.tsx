@@ -20,13 +20,7 @@ import {
   AsyncRequest,
 } from '@krumpled/krumi/std/async-request';
 import { Session, load as loadSession } from '@krumpled/krumi/session';
-import Login from '@krumpled/krumi/routes/login';
-import NewLobby from '@krumpled/krumi/routes/new-lobby';
-import Game from '@krumpled/krumi/routes/game';
-import NewGame from '@krumpled/krumi/routes/new-game';
-import Lobby from '@krumpled/krumi/routes/lobby';
-import Home from '@krumpled/krumi/routes/home';
-import Logout from '@krumpled/krumi/routes/logout';
+import * as Routes from '@krumpled/krumi/routes';
 
 const log = debug('krumi:app');
 
@@ -101,22 +95,22 @@ function Main(props: { state: State }): React.FunctionComponentElement<{}> {
           <Header key="header" session={session.data} />
           <Switch>
             <Route extact path="/login">
-              <Login session={session.data} />
+              <Routes.Login session={session.data} />
             </Route>
             <Route extact path="/home">
-              <Home session={session.data} />
+              <Routes.Home session={session.data} />
             </Route>
             <Route extact path="/lobbies/:id/new-game">
-              <NewGame session={session.data} />
+              <Routes.NewGame session={session.data} />
             </Route>
             <Route extact path="/lobbies/:lobbyId/games/:gameId">
-              <Game session={session.data} />
+              <Routes.Game session={session.data} />
             </Route>
             <Route extact path="/lobbies/:id">
-              <Lobby session={session.data} />
+              <Routes.Lobby session={session.data} />
             </Route>
             <Route extact path="/new-lobby">
-              <NewLobby session={session.data} />
+              <Routes.NewLobby session={session.data} />
             </Route>
             <Route>
               <Redirect to="/login" />
@@ -151,7 +145,10 @@ function App(): React.FunctionComponentElement<{}> {
     <Router>
       <Switch>
         <Route path="/auth/logout">
-          <Logout state={state} update={(state): void => update(state)} />
+          <Routes.Logout
+            state={state}
+            update={(state): void => update(state)}
+          />
         </Route>
         <Route path="/auth/callback">
           <AuthCallback update={(state): void => update(state)} />

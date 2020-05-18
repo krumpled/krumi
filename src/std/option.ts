@@ -22,3 +22,7 @@ export function map<T, U>(
 ): Option<U> {
   return option.kind === 'some' ? some(mapper(option.data)) : none();
 }
+
+export function unwrapOr<T>(opt: Option<T>, other: T): T {
+  return opt.kind === 'some' ? opt.data : other;
+}

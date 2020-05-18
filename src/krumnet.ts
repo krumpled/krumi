@@ -1,7 +1,7 @@
 import axios from 'axios';
 import debug from 'debug';
 import config from '@krumpled/krumi/config';
-import { Result, ok, err } from '@krumpled/krumi/std';
+import { Result, ok, err, camelizeKeys } from '@krumpled/krumi/std';
 
 const log = debug('krumi:krumnet');
 
@@ -36,7 +36,7 @@ export async function fetch(
 
   try {
     const result = await axios(uri, { headers, params });
-    return ok(result.data);
+    return ok(camelizeKeys(result.data));
   } catch (e) {
     return err([e]);
   }
@@ -53,7 +53,7 @@ export async function post<T>(path: string, data?: T): Promise<Result<object>> {
 
   try {
     const { data: response } = await axios.post(uri, data, { headers });
-    return ok(response);
+    return ok(camelizeKeys(response));
   } catch (e) {
     return err([e]);
   }
