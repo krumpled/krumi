@@ -9,7 +9,6 @@ import {
 import { render } from 'react-dom';
 import debug from 'debug';
 import Header from '@krumpled/krumi/components/application-header';
-import Footer from '@krumpled/krumi/components/application-footer';
 import Loading from '@krumpled/krumi/components/application-loading';
 import ApplicationError from '@krumpled/krumi/components/application-error';
 import { none, fromNullable } from '@krumpled/krumi/std';
@@ -23,6 +22,7 @@ import {
 import { Session, load as loadSession } from '@krumpled/krumi/session';
 import Login from '@krumpled/krumi/routes/login';
 import NewLobby from '@krumpled/krumi/routes/new-lobby';
+import Game from '@krumpled/krumi/routes/game';
 import NewGame from '@krumpled/krumi/routes/new-game';
 import Lobby from '@krumpled/krumi/routes/lobby';
 import Home from '@krumpled/krumi/routes/home';
@@ -109,6 +109,9 @@ function Main(props: { state: State }): React.FunctionComponentElement<{}> {
             <Route extact path="/lobbies/:id/new-game">
               <NewGame session={session.data} />
             </Route>
+            <Route extact path="/lobbies/:lobbyId/games/:gameId">
+              <Game session={session.data} />
+            </Route>
             <Route extact path="/lobbies/:id">
               <Lobby session={session.data} />
             </Route>
@@ -119,7 +122,6 @@ function Main(props: { state: State }): React.FunctionComponentElement<{}> {
               <Redirect to="/login" />
             </Route>
           </Switch>
-          <Footer session={session.data} />
         </section>
       );
     case 'failed':
