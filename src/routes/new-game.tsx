@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Redirect, useParams } from 'react-router-dom';
 import { AuthenticatedRoute } from '@krumpled/krumi/routing-utilities';
 import Loading from '@krumpled/krumi/components/application-loading';
 import ApplicationError from '@krumpled/krumi/components/application-error';
@@ -75,7 +75,11 @@ function NewGame(): React.FunctionComponentElement<{}> {
   switch (request.kind) {
     case 'loading':
     case 'not-asked':
-      return <Loading />;
+      return (
+        <section className="y-content x-gutters y-gutters">
+          <Loading />
+        </section>
+      );
     case 'loaded': {
       const { data: result } = request;
 
@@ -83,7 +87,9 @@ function NewGame(): React.FunctionComponentElement<{}> {
         return <ApplicationError errors={result.errors} />;
       }
 
-      return <div></div>;
+      return (
+        <Redirect to={`/lobbies/${state.lobbyId}/games/${result.data.id}`} />
+      );
     }
     case 'failed':
       return <ApplicationError errors={request.errors} />;

@@ -19,7 +19,7 @@ function Home(props: Props): React.FunctionComponentElement<{}> {
 
   log('user logged in, rendering content');
   return (
-    <section data-role="home" className="x-gutters y-content py-5">
+    <section data-role="home" className="x-gutters y-content y-gutters">
       <aside>Hello</aside>
     </section>
   );

@@ -16,7 +16,7 @@ function Header({
       return (
         <header className="flex bg-gray-900 x-gutters py-5 items-center">
           <aside data-role="header-left" className="flex items-center">
-            <Link to="/home" className="block mr-5 px-2">
+            <Link to="/home" className="block mr-5 pr-2">
               Home
             </Link>
             <Link to="/new-lobby" className="block px-2">

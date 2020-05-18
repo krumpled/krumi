@@ -71,7 +71,7 @@ function Lobby(props: Props): React.FunctionComponentElement<{}> {
       return <Loading />;
     case 'loaded':
       return (
-        <section className="y-content x-gutters">
+        <section className="y-content x-gutters y-gutters">
           <aside data-role="sidebar">
             <Link to={`/lobbies/${state.id}/new-game`}>New Game</Link>
           </aside>
