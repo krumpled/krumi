@@ -27,7 +27,45 @@ function separateWords(
   return input.split(split).join(separator);
 }
 
+function camelize(input: string): string {
+  const replaced = input.replace(/[-_\s]+(.)?/g, (_match, chr) =>
+    (chr || '').toUpperCase(),
+  );
+  return replaced.substr(0, 1).toLowerCase() + replaced.substr(1);
+}
+
+export function camelizeKeys(input: object): object {
+  if (typeof input !== 'object') {
+    return input;
+  }
+
+  return Object.keys(input).reduce((acc, k) => {
+    const camelized = camelize(k);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const value = (input as any)[k];
+
+    if (Array.isArray(value)) {
+      const nested = value.map(camelizeKeys);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return { ...acc, [camelized]: nested } as any;
+    }
+
+    if (typeof value === 'object') {
+      const nested = camelizeKeys(value);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return { ...acc, [camelized]: nested } as any;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return { ...acc, [camelized]: value } as any;
+  }, {} as object);
+}
+
 export function underscoreKeys(input: object): object {
+  if (typeof input !== 'object') {
+    return input;
+  }
+
   return Object.keys(input).reduce((acc, k) => {
     const underscored = separateWords(k).toLowerCase();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
