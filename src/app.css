@@ -36,6 +36,12 @@ a {
   min-height: calc(100% - 40px);
 }
 
+.btn {
+  @apply block;
+  @apply px-3;
+  @apply py-2;
+}
+
 .input-white {
   @apply block;
   @apply px-3;

@@ -2,39 +2,61 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthenticatedRoute } from '@krumpled/krumi/routing-utilities';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
+import { Session } from '@krumpled/krumi/session';
 import {
   mapOption,
-  Result,
+  mapOptionAsync,
   loaded,
   failed,
   loading,
+  ready,
 } from '@krumpled/krumi/std';
-import { fetch } from '@krumpled/krumi/krumnet';
 import ApplicationError from '@krumpled/krumi/components/application-error';
 import Loading from '@krumpled/krumi/components/application-loading';
 import debug from 'debug';
 import {
+  State,
   init,
-  checkActive,
   changedActiveRound,
   findActiveRound,
+  ActiveRound,
   GameState,
-  GameDetailRound,
-  GameDetailResponse,
 } from '@krumpled/krumi/routes/game/state';
-import { empty } from '@krumpled/krumi/routes/game/round-submission';
+import {
+  RoundSubmission,
+  failed as failedSubmission,
+  pending as pendingSubmission,
+  empty as emptySubmission,
+  done as finishedSubmission,
+} from '@krumpled/krumi/routes/game/round-submission';
+import {
+  GameDetailRound,
+  fetchRoundDetails,
+  fetchGame,
+  createEntry,
+} from '@krumpled/krumi/routes/game/data-store';
+import RoundDisplay from '@krumpled/krumi/routes/game/round-display';
 
 const log = debug('krumi:route.game');
 
-async function fetchGame(gameId: string): Promise<Result<GameDetailResponse>> {
-  const params = { ids: [gameId] };
-  return (await fetch(`/games`, params)) as Result<GameDetailResponse>;
+async function loadRoundDetails(
+  roundDetails: GameDetailRound,
+): Promise<ActiveRound> {
+  log('fetching round details for round "%s"', roundDetails.id);
+  const round = await fetchRoundDetails(roundDetails.id);
+
+  if (round.kind === 'err') {
+    const [e] = round.errors;
+    return Promise.reject(e);
+  }
+
+  return { round: round.data, submission: emptySubmission() };
 }
 
-async function load(lobbyId: string, gameId: string): Promise<GameState> {
-  const lobby = { id: lobbyId };
+async function load(state: State): Promise<GameState> {
+  const lobby = { id: state.lobbyId };
 
-  const res = await fetchGame(gameId);
+  const res = await fetchGame(state.gameId);
 
   if (res.kind === 'err') {
     const [e] = res.errors;
@@ -43,12 +65,23 @@ async function load(lobbyId: string, gameId: string): Promise<GameState> {
 
   const { data: details } = res;
 
-  log('loaded game "%s"', details.created);
+  log('loaded game "%s" (created %s)', details.id, details.created);
 
-  const activeRound = mapOption(findActiveRound(details.rounds), (round) => ({
-    round,
-    submission: empty(),
-  }));
+  const maybeActive = findActiveRound(details.rounds);
+  const activeRoundDetails = await mapOptionAsync(
+    maybeActive,
+    loadRoundDetails,
+  );
+  const activeRound = mapOption(activeRoundDetails, (details) => {
+    const entry = details.round.entries.find((e) => e.userId === state.userId);
+
+    if (!entry) {
+      return details;
+    }
+
+    return { ...details, submission: finishedSubmission(entry.entry) };
+  });
+
   return { lobby, game: details, activeRound };
 }
 
@@ -82,32 +115,65 @@ function renderRoundSummary(
   );
 }
 
-function Game(): React.FunctionComponentElement<{}> {
-  const [state, update] = useState(init());
+async function p(
+  state: State,
+  update: (state: State) => void,
+  cancellation: Promise<void>,
+): Promise<void> {
+  const preflight = await Promise.race([cancellation, ready('yes', 5000)]);
+
+  if (preflight !== 'yes') {
+    log('cancellation promise resolved before slight preflight, skipping');
+    return;
+  }
+
+  debug('delayed, loading potentially new state');
+
+  const attempt = load(state);
+  const res = await Promise.race([cancellation, attempt]);
+
+  if (!res) {
+    log('cancellation promise resolved first, skipping poll');
+    return;
+  }
+
+  const next = { ...state, gameState: loaded(res) };
+
+  if (changedActiveRound(state, next)) {
+    log('active round has changed, updating state');
+    update(next);
+  }
+
+  log('successfully reloaded game, queing another attempt');
+  p(state, update, cancellation);
+}
+
+function poll(state: State, update: (state: State) => void): () => void {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  let stop = function (): void {};
+  const cancellation = new Promise<void>((resolve) => (stop = resolve));
+  p(state, update, cancellation).catch(stop);
+  return stop;
+}
+
+type Props = {
+  session: Session;
+};
+
+function Game(props: Props): React.FunctionComponentElement<{}> {
+  const [state, update] = useState(init({ session: props.session }));
 
   useEffect(() => {
     const { gameState: details } = state;
 
     switch (details.kind) {
       case 'loaded': {
-        log('finished loading game, starting interval');
-
-        const interval = setInterval(() => {
-          const next = checkActive(state);
-
-          if (changedActiveRound(state, next)) {
-            log('active round changed, updating');
-            return update(next);
-          }
-
-          log('game update interval, nothing changed');
-        }, 1000);
-
-        return (): void => clearInterval(interval);
+        log('finished loading game, starting poll interval');
+        return poll(state, update);
       }
       case 'not-asked': {
         log('fetching details');
-        const promise = load(state.lobbyId, state.gameId);
+        const promise = load(state);
         const gameState = loading(promise);
 
         promise
@@ -131,10 +197,48 @@ function Game(): React.FunctionComponentElement<{}> {
     case 'failed':
       return <ApplicationError errors={state.gameState.errors} />;
     case 'loaded': {
-      const { lobby, game } = state.gameState.data;
+      const { data: gameState } = state.gameState;
+      const { lobby, game } = gameState;
 
       log('game "%s" loaded', game.id);
       const roundSummaries = game.rounds.map(renderRoundSummary);
+
+      const replaceSubmission = (submission: RoundSubmission): void => {
+        const activeRound = mapOption(gameState.activeRound, (round) => ({
+          ...round,
+          submission,
+        }));
+        const newGameState = loaded({ ...gameState, activeRound });
+
+        update({
+          ...state,
+          gameState: newGameState,
+        });
+      };
+
+      const updateSubmission = (value: string): void => {
+        log('updating submission "%s"', value);
+        const submission = emptySubmission(value);
+        replaceSubmission(submission);
+      };
+
+      const submitSubmission = (roundId: string, value: string): void => {
+        log('sending submission "%s"', value);
+        const promise = createEntry(roundId, value);
+        const submission = pendingSubmission(promise);
+
+        promise
+          .then((result) => {
+            const finished = finishedSubmission(result.entry);
+            replaceSubmission(finished);
+          })
+          .catch((e) => {
+            const failed = failedSubmission(e);
+            replaceSubmission(failed);
+          });
+
+        replaceSubmission(submission);
+      };
 
       return (
         <section className="y-content y-gutters x-gutters flex">
@@ -147,7 +251,13 @@ function Game(): React.FunctionComponentElement<{}> {
             <h2 className="pb-2 block">Rounds</h2>
             <ul className="block">{roundSummaries}</ul>
           </aside>
-          <main data-role="main-game-contents" className="pl-3 block"></main>
+          <main data-role="main-game-contents" className="pl-3 block">
+            <RoundDisplay
+              round={gameState.activeRound}
+              updateSubmission={updateSubmission}
+              submitSubmission={submitSubmission}
+            />
+          </main>
         </section>
       );
     }

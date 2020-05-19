@@ -1,7 +1,9 @@
 import {
   Option,
   fromNullable,
+  fuse as fuseOption,
   map as mapOption,
+  mapAsync as mapOptionAsync,
   unwrapOr as unwrapOptionOr,
   none,
   some,
@@ -14,6 +16,15 @@ import {
   notAsked,
   failed,
 } from '@krumpled/krumi/std/async-request';
+
+export function ready<T>(data: T, delay?: number): Promise<T> {
+  return new Promise((resolve) => {
+    if (delay) {
+      return setTimeout(() => resolve(data), delay);
+    }
+    return resolve(data);
+  });
+}
 
 export function always<T>(item: T): () => T {
   return (): T => item;
@@ -124,4 +135,6 @@ export {
   mapResult,
   mapOption,
   unwrapOptionOr,
+  mapOptionAsync,
+  fuseOption,
 };
