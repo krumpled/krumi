@@ -1,6 +1,6 @@
 /node_modules
 /.cache
 /dist
-krumi-config.json
+.env
 
 *.log

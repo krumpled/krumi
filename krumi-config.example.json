@@ -1,8 +1,0 @@
-{
-  "session": {
-    "key": "krumi:session"
-  },
-  "krumnet": {
-    "url": "http://krumnet.local.krumpled.com:8080"
-  }
-}
