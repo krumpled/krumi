@@ -1,0 +1,46 @@
+name: gh.create-release
+on:
+  push:
+    tags:
+      - v*
+jobs:
+  build:
+    name: create-release
+    runs-on: ubuntu-latest
+    container:
+      image: node:10
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '10.x'
+      - name: Install Dependencies
+        run: npm i
+      - name: Copy config
+        run: cp krumi-config.example.json krumi-config.json
+      - name: Link
+        run: npm run lint:js
+      - name: Build
+        run: npm run build:release
+      - name: Bundle
+        run: tar -C dist/target/release -cvzf krumi.tar.gz .
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+      - name: Upload Asset
+        id: upload_release_asset 
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./krumi.tar.gz
+          asset_name: krumi.tar.gz
+          asset_content_type: application/tar+gzip
