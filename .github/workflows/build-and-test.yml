@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: node:10
-    if: ${{ startsWith(github.ref, 'v') }}
+    if: startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v2
       - name: Install Dependencies
