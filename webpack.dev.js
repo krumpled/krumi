@@ -5,12 +5,9 @@ const path = require('path');
 const merge = require('webpack-merge');
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-module.exports = async function () {
-  const config = await common();
-  return merge(config, {
-    mode: 'development',
-    output: {
-      path: path.resolve(__dirname, 'dist/target/development'),
-    },
-  });
-};
+module.exports = merge(common, {
+  mode: 'development',
+  output: {
+    path: path.resolve(__dirname, 'dist/target/development'),
+  },
+});
