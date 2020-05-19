@@ -17,3 +17,43 @@ jobs:
         run: npm run test
       - name: Build Production
         run: npm run build:release
+  release:
+    name: create-release
+    needs: build
+    runs-on: ubuntu-latest
+    container:
+      image: node:10
+    if: ${{ startsWith(github.ref, 'v') }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Dependencies
+        run: npm i
+      - name: Lint
+        run: npm run lint:js
+      - name: Build
+        run: npm run build:release
+        env:
+          KRUMI_KRUMNET_URL: ${{ secrets.KRUMI_KRUMNET_URL }}
+          KRUMI_SESSION_KEY: ${{ secrets.KRUMI_SESSION_KEY }}
+      - name: Bundle
+        run: tar -C dist/target/release -cvzf krumi.tar.gz .
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+      - name: Upload Asset
+        id: upload_release_asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./krumi.tar.gz
+          asset_name: krumi.tar.gz
+          asset_content_type: application/tar+gzip
