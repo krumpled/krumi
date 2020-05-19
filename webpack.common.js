@@ -3,6 +3,7 @@
 const path = require('path');
 const fs = require('fs');
 const HTMLPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const webpack = require('webpack');
 const debug = require('debug');
 
@@ -19,13 +20,14 @@ module.exports = async function () {
 
   return {
     entry: './src/index.ts',
-    devtool: 'inline-source-map',
+    devtool: 'source-map',
     module: {
       rules: [
         {
           test: /\.css$/,
           use: [
             'style-loader',
+            MiniCssExtractPlugin.loader,
             { loader: 'css-loader', options: { importLoaders: 1 } },
             {
               loader: 'postcss-loader',
@@ -50,6 +52,7 @@ module.exports = async function () {
       ],
     },
     plugins: [
+      new MiniCssExtractPlugin(),
       new HTMLPlugin({ template: 'src/index.html' }),
       new webpack.DefinePlugin({ KRUMI_CONFIG: JSON.stringify(config) }),
     ],
@@ -60,7 +63,6 @@ module.exports = async function () {
       },
     },
     output: {
-      filename: 'bundle.js',
       path: path.resolve(__dirname, 'dist'),
       publicPath: '/',
     },

@@ -5,9 +5,9 @@
   "scripts": {
     "tsc": "tsc --noEmit",
     "lint:js": "eslint --ext js,ts,tsx .",
-    "build:development": "webpack --config webpack.config.js --mode development",
-    "build:release": "webpack --config webpack.config.js --mode production",
-    "start": "webpack-dev-server"
+    "build:development": "webpack --config webpack.dev.js",
+    "build:release": "webpack --config webpack.prod.js",
+    "start": "webpack-dev-server --config webpack.dev.js"
   },
   "author": "",
   "license": "ISC",
@@ -47,6 +47,7 @@
     "eslint-plugin-standard": "^4.0.1",
     "html-webpack-plugin": "^4.3.0",
     "install": "^0.13.0",
+    "mini-css-extract-plugin": "^0.9.0",
     "npm": "^6.14.5",
     "postcss-loader": "^3.0.0",
     "prettier": "^2.0.5",
@@ -54,6 +55,7 @@
     "ts-loader": "^7.0.4",
     "webpack": "^4.43.0",
     "webpack-cli": "^3.3.11",
-    "webpack-dev-server": "^3.11.0"
+    "webpack-dev-server": "^3.11.0",
+    "webpack-merge": "^4.2.2"
   }
 }
