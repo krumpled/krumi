@@ -15,3 +15,5 @@ jobs:
         run: npm run build:development
       - name: Lint
         run: npm run lint:js
+      - name: Build Production
+        run: npm run build:release
