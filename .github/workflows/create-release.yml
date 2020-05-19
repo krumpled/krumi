@@ -17,6 +17,9 @@ jobs:
         run: npm run lint:js
       - name: Build
         run: npm run build:release
+        env:
+          KRUMI_KRUMNET_URL: ${{ secrets.KRUMI_KRUMNET_URL }}
+          KRUMI_SESSION_KEY: ${{ secrets.KRUMI_SESSION_KEY }}
       - name: Bundle
         run: tar -C dist/target/release -cvzf krumi.tar.gz .
       - name: Create Release
