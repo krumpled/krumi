@@ -1,48 +1,22 @@
 import {
   unwrapOptionOr,
   mapOption,
-  loaded,
   fromNullable,
   notAsked,
   Option,
   AsyncRequest,
 } from '@krumpled/krumi/std';
 import { useParams } from 'react-router-dom';
+import { RoundSubmission } from '@krumpled/krumi/routes/game/round-submission';
 import {
-  empty,
-  RoundSubmission,
-} from '@krumpled/krumi/routes/game/round-submission';
-
-export type State = {
-  lobbyId: string;
-  gameId: string;
-  gameState: AsyncRequest<GameState>;
-};
-
-export type GameDetailRound = {
-  id: string;
-  prompt: string;
-  completed: null | number;
-  started: null | number;
-  position: number;
-};
-
-export type GameDetailMember = {
-  memberId: string;
-  userId: string;
-  name: string;
-  email: string;
-};
-
-export type GameDetailResponse = {
-  id: string;
-  created: string;
-  members: Array<GameDetailMember>;
-  rounds: Array<GameDetailRound>;
-};
+  GameDetailResponse,
+  GameDetailRound,
+  RoundDetailResponse,
+} from '@krumpled/krumi/routes/game/data-store';
+import { Session } from '@krumpled/krumi/session';
 
 export type ActiveRound = {
-  round: GameDetailRound;
+  round: RoundDetailResponse;
   submission: RoundSubmission;
 };
 
@@ -52,9 +26,18 @@ export type GameState = {
   activeRound: Option<ActiveRound>;
 };
 
-export function init(): State {
+export type State = {
+  userId: string;
+  lobbyId: string;
+  gameId: string;
+  gameState: AsyncRequest<GameState>;
+};
+
+export function init({ session }: { session: Session }): State {
   const { lobbyId, gameId } = useParams();
-  return { lobbyId, gameId, gameState: notAsked() };
+  const maybeId = mapOption(session.user, (user) => user.id);
+  const userId = unwrapOptionOr(maybeId, '');
+  return { lobbyId, gameId, gameState: notAsked(), userId };
 }
 
 function isActive({ completed, started }: GameDetailRound): boolean {
@@ -90,17 +73,4 @@ export function changedActiveRound(
   const currentId = unwrapOptionOr(maybeCurrent, '');
   const nextId = unwrapOptionOr(maybeNext, '');
   return currentId !== nextId;
-}
-
-export function checkActive(state: State): State {
-  if (state.gameState.kind !== 'loaded') {
-    return state;
-  }
-
-  const { data: details } = state.gameState;
-  const activeRound = mapOption(
-    findActiveRound(details.game.rounds),
-    (round) => ({ round, submission: empty() }),
-  );
-  return { ...state, gameState: loaded({ ...details, activeRound }) };
 }
