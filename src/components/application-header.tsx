@@ -32,7 +32,7 @@ function Header({
     }
     case 'none':
       return (
-        <header className="flex bg-gray-900 px-8 py-5 items-center"></header>
+        <header className="flex bg-gray-900 x-gutters py-5 items-center"></header>
       );
   }
 }
