@@ -32,6 +32,25 @@ function authorizationHeaders(): object {
   return { Authorization: authorization.token };
 }
 
+export async function destroy(
+  path: string,
+  payload?: object,
+): Promise<Result<object>> {
+  const uri = `${config.krumnet.url}${path}`;
+  log('DELETE to "%s"', uri);
+  const headers = { ...authorizationHeaders() };
+
+  try {
+    const result = await axios.delete(uri, {
+      headers,
+      data: underscoreKeys(payload),
+    });
+    return ok(camelizeKeys(result.data));
+  } catch (e) {
+    return err([e]);
+  }
+}
+
 export async function fetch(
   path: string,
   params?: object,
