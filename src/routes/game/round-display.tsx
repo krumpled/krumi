@@ -89,7 +89,9 @@ function RoundDisplay(props: Props): React.FunctionComponentElement<{}> {
           <span> (started {moment(details.started).fromNow()})</span>
         </h2>
       </header>
-      <section data-role="prompt">{prompt}</section>
+      <section data-role="prompt" className="pb-2 mb-2">
+        {prompt}
+      </section>
       <section data-role="submission">
         <SubmissionDisplay
           submission={submission}
