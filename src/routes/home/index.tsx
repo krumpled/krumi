@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Redirect, Link } from 'react-router-dom';
 import moment from 'moment';
 import { AuthenticatedRoute } from '@krumpled/krumi/routing-utilities';
 import {
+  mapOption,
+  unwrapOptionOr as unwrapOption,
+  Option,
+  none,
   AsyncRequest,
   loaded,
   failed,
   notAsked,
   loading,
+  some,
 } from '@krumpled/krumi/std';
 import { Session } from '@krumpled/krumi/session';
 import Loading from '@krumpled/krumi/components/application-loading';
@@ -36,10 +41,11 @@ export type Props = {
 
 type State = {
   lobbies: AsyncRequest<Array<LobbyInfo>>;
+  joinLobby: Option<{ value: string; sent: boolean }>;
 };
 
 function init(): State {
-  return { lobbies: notAsked() };
+  return { lobbies: notAsked(), joinLobby: none() };
 }
 
 function renderLobbyActions(
@@ -85,7 +91,7 @@ function renderLobby(
 
   return (
     <tr data-role="lobby" data-lobby-id={lobby.id} key={lobby.id}>
-      <td className="py-2 px-3">{link}</td>
+      <td className="py-2 pr-3">{link}</td>
       <td className="py-2 px-3">{timestamp}</td>
       <td className="py-2 px-3">{lobby.gameCount}</td>
       <td className="py-2 px-3">{lobby.memberCount}</td>
@@ -120,7 +126,7 @@ function Home(): React.FunctionComponentElement<{}> {
       if (promises.length) {
         Promise.all(promises)
           .then(() => update(init()))
-          .catch((errors) => update({ lobbies: failed(errors) }));
+          .catch((errors) => update({ ...state, lobbies: failed(errors) }));
       }
     }
 
@@ -152,12 +158,17 @@ function Home(): React.FunctionComponentElement<{}> {
         ? lobbies.data.map((lobby) => renderLobby(lobby, leave))
         : EMPTY_LOBBY_TABLE_ROW;
 
+      if (state.joinLobby.kind === 'some' && state.joinLobby.data.sent) {
+        const targetId = state.joinLobby.data.value.trim();
+        return <Redirect to={`/join-lobby/${targetId}`} />;
+      }
+
       return (
         <section
           data-role="home"
           className="x-gutters y-content y-gutters flex"
         >
-          <aside data-role="lobby-list block pr-4">
+          <aside data-role="lobby-list" className="block pr-4">
             <header className="flex pb-2 mb-2">
               <h2 className="block pr-2">Lobbies</h2>
               <Link to="/new-lobby">New</Link>
@@ -165,7 +176,7 @@ function Home(): React.FunctionComponentElement<{}> {
             <table>
               <thead>
                 <tr>
-                  <th className="px-3 py-2 text-left">Name</th>
+                  <th className="pr-3 py-2 text-left">Name</th>
                   <th className="px-3 py-2 text-left">Created</th>
                   <th className="px-3 py-2 text-left">Games</th>
                   <th className="px-3 py-2 text-left">Members</th>
@@ -174,6 +185,42 @@ function Home(): React.FunctionComponentElement<{}> {
               </thead>
               <tbody>{list}</tbody>
             </table>
+          </aside>
+          <aside className="pl-4 block">
+            <h2 className="block pb-2 mb-2">Join</h2>
+            <div className="block flex items-center">
+              <input
+                type="text"
+                className="input-white"
+                value={
+                  unwrapOption(state.joinLobby, { value: '', sent: false })
+                    .value
+                }
+                onChange={(e): void => {
+                  update({
+                    ...state,
+                    joinLobby: some({
+                      value: (e.target as HTMLInputElement).value,
+                      sent: false,
+                    }),
+                  });
+                }}
+              />
+              <button
+                className="btn ml-2"
+                onClick={(): void => {
+                  update({
+                    ...state,
+                    joinLobby: mapOption(state.joinLobby, ({ value }) => ({
+                      value,
+                      sent: true,
+                    })),
+                  });
+                }}
+              >
+                go
+              </button>
+            </div>
           </aside>
         </section>
       );
