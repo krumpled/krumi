@@ -75,6 +75,8 @@ async function load(state: State): Promise<GameState> {
   const activeRound = mapOption(activeRoundDetails, (details) => {
     const entry = details.round.entries.find((e) => e.userId === state.userId);
 
+    console.log({ entry, details });
+
     if (!entry) {
       return details;
     }

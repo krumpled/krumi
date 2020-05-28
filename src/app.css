@@ -56,3 +56,16 @@ a {
   @apply bg-gray-100;
   @apply text-gray-500;
 }
+
+table tbody td {
+  @apply px-3;
+  @apply py-2;
+}
+
+table thead th {
+  @apply px-3;
+  @apply border-b;
+  @apply border-black;
+  @apply border-solid;
+  @apply py-2;
+}
