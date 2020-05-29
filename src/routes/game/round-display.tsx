@@ -1,6 +1,5 @@
 import React from 'react';
-import { Option } from '@krumpled/krumi/std';
-import { ActiveRound } from '@krumpled/krumi/routes/game/state';
+import { RoundCursor as ActiveRound, ActiveRound as EntryRound, VotingRound } from '@krumpled/krumi/routes/game/state';
 import { RoundSubmission as Submission } from '@krumpled/krumi/routes/game/round-submission';
 import Loading from '@krumpled/krumi/components/application-loading';
 import ApplicationError from '@krumpled/krumi/components/application-error';
@@ -10,7 +9,7 @@ import debug from 'debug';
 const log = debug('krumi:routes.game.round-display');
 
 type Props = {
-  round: Option<ActiveRound>;
+  round: ActiveRound;
   updateSubmission: (value: string) => void;
   submitSubmission: (roundId: string, value: string) => void;
 };
@@ -30,14 +29,9 @@ function SubmissionDisplay(props: {
             type="text"
             className="input-white mr-3"
             value={submission.value}
-            onChange={(evt): void =>
-              props.update((evt.target as HTMLInputElement).value)
-            }
+            onChange={(evt): void => props.update((evt.target as HTMLInputElement).value)}
           />
-          <button
-            className="btn"
-            onClick={(): void => props.submit(submission.value)}
-          >
+          <button className="btn" onClick={(): void => props.submit(submission.value)}>
             Submit
           </button>
         </div>
@@ -63,24 +57,16 @@ function SubmissionDisplay(props: {
   }
 }
 
-function RoundDisplay(props: Props): React.FunctionComponentElement<{}> {
-  const { round } = props;
+type EntryRoundDisplayProps = {
+  cursor: EntryRound;
+} & Omit<Props, 'round'>;
 
-  if (round.kind === 'none') {
-    return <div data-role="no-active-round">No Active Round</div>;
-  }
-
-  const { round: details, submission } = round.data;
-  log('rendering round, submission - %s', submission.kind);
-
+function EntryRoundDisplay(props: EntryRoundDisplayProps): React.FunctionComponentElement<{}> {
+  const { round: details, submission } = props.cursor;
   const prompt = <div>{details.prompt}</div>;
 
   return (
-    <article
-      data-role="active-round"
-      className="block"
-      data-round-id={details.id}
-    >
+    <article data-role="active-round" className="block" data-round-id={details.id}>
       <header className="block mb-2 pb-2">
         <h2 className="block">
           <span>
@@ -107,6 +93,59 @@ function RoundDisplay(props: Props): React.FunctionComponentElement<{}> {
       </section>
     </article>
   );
+}
+
+type VotingRoundProps = {
+  cursor: VotingRound;
+} & Omit<Props, 'round'>;
+
+function renderOptionRow(option: { id: string; value: string }): React.FunctionComponentElement<{}> {
+  return (
+    <tr key={option.id} data-option-id={option.id}>
+      <td>{option.value}</td>
+      <td>
+        <button className="block">vote</button>
+      </td>
+    </tr>
+  );
+}
+
+function VotingRoundDisplay(props: VotingRoundProps): React.FunctionComponentElement<{}> {
+  const { round, options } = props.cursor;
+  const renderedOptions = options.map(renderOptionRow);
+
+  return (
+    <section data-role="voting-round">
+      <header className="block mb-2 pb-2">
+        Voting for round <span>{round.position + 1}</span>
+      </header>
+      <table>
+        <thead>
+          <tr>
+            <th>Entry</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>{renderedOptions}</tbody>
+      </table>
+    </section>
+  );
+}
+
+function RoundDisplay(props: Props): React.FunctionComponentElement<{}> {
+  const { round } = props;
+
+  if (round.kind === 'none') {
+    return <div data-role="no-active-round">No Active Round</div>;
+  }
+
+  const { data: cursor } = round;
+
+  if (cursor.kind === 'active-round') {
+    return <EntryRoundDisplay {...props} cursor={cursor} />;
+  }
+
+  return <VotingRoundDisplay {...props} cursor={cursor} />;
 }
 
 export default RoundDisplay;

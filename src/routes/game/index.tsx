@@ -3,25 +3,12 @@ import { Link } from 'react-router-dom';
 import { AuthenticatedRoute } from '@krumpled/krumi/routing-utilities';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { Session } from '@krumpled/krumi/session';
-import {
-  mapOption,
-  mapOptionAsync,
-  loaded,
-  failed,
-  loading,
-  ready,
-} from '@krumpled/krumi/std';
+import moment from 'moment';
+import { mapOption, loaded, failed, loading, ready } from '@krumpled/krumi/std';
 import ApplicationError from '@krumpled/krumi/components/application-error';
 import Loading from '@krumpled/krumi/components/application-loading';
 import debug from 'debug';
-import {
-  State,
-  init,
-  changedActiveRound,
-  findActiveRound,
-  ActiveRound,
-  GameState,
-} from '@krumpled/krumi/routes/game/state';
+import { State, init, load, changedActiveRound } from '@krumpled/krumi/routes/game/state';
 import {
   RoundSubmission,
   failed as failedSubmission,
@@ -29,68 +16,12 @@ import {
   empty as emptySubmission,
   done as finishedSubmission,
 } from '@krumpled/krumi/routes/game/round-submission';
-import {
-  GameDetailRound,
-  fetchRoundDetails,
-  fetchGame,
-  createEntry,
-} from '@krumpled/krumi/routes/game/data-store';
+import { GameDetailRound, createEntry } from '@krumpled/krumi/routes/game/data-store';
 import RoundDisplay from '@krumpled/krumi/routes/game/round-display';
 
 const log = debug('krumi:route.game');
 
-async function loadRoundDetails(
-  roundDetails: GameDetailRound,
-): Promise<ActiveRound> {
-  log('fetching round details for round "%s"', roundDetails.id);
-  const round = await fetchRoundDetails(roundDetails.id);
-
-  if (round.kind === 'err') {
-    const [e] = round.errors;
-    return Promise.reject(e);
-  }
-
-  return { round: round.data, submission: emptySubmission() };
-}
-
-async function load(state: State): Promise<GameState> {
-  const lobby = { id: state.lobbyId };
-
-  const res = await fetchGame(state.gameId);
-
-  if (res.kind === 'err') {
-    const [e] = res.errors;
-    return Promise.reject(e);
-  }
-
-  const { data: details } = res;
-
-  log('loaded game "%s" (created %s)', details.id, details.created);
-
-  const maybeActive = findActiveRound(details.rounds);
-  const activeRoundDetails = await mapOptionAsync(
-    maybeActive,
-    loadRoundDetails,
-  );
-  const activeRound = mapOption(activeRoundDetails, (details) => {
-    const entry = details.round.entries.find((e) => e.userId === state.userId);
-
-    console.log({ entry, details });
-
-    if (!entry) {
-      return details;
-    }
-
-    return { ...details, submission: finishedSubmission(entry.entry) };
-  });
-
-  return { lobby, game: details, activeRound };
-}
-
-function roundIcon({
-  completed,
-  started,
-}: GameDetailRound): React.FunctionComponentElement<{}> {
+function roundIcon({ fulfilled: completed, started }: GameDetailRound): React.FunctionComponentElement<{}> {
   if (completed) {
     return <Icon icon="circle" />;
   }
@@ -102,26 +33,24 @@ function roundIcon({
   return <Icon icon="plus" className="opacity-0" />;
 }
 
-function renderRoundSummary(
-  round: GameDetailRound,
-): React.FunctionComponentElement<{}> {
+function renderRoundSummary(round: GameDetailRound): React.FunctionComponentElement<{}> {
   const icon = roundIcon(round);
 
   return (
-    <li data-round-id={round.id} key={round.id} className="py-2 flex">
-      <span className="block pr-2 mr-2">{icon}</span>
-      <span className="block">
-        Round <span>{round.position + 1}</span>
-      </span>
-    </li>
+    <tr data-round-id={round.id} key={round.id}>
+      <td>
+        <span className="block pr-2 mr-2">{icon}</span>
+      </td>
+      <td>
+        <span className="block">
+          Round <span>{round.position + 1}</span>
+        </span>
+      </td>
+    </tr>
   );
 }
 
-async function p(
-  state: State,
-  update: (state: State) => void,
-  cancellation: Promise<void>,
-): Promise<void> {
+async function p(state: State, update: (state: State) => void, cancellation: Promise<void>): Promise<void> {
   const preflight = await Promise.race([cancellation, ready('yes', 5000)]);
 
   if (preflight !== 'yes') {
@@ -206,11 +135,12 @@ function Game(props: Props): React.FunctionComponentElement<{}> {
       const roundSummaries = game.rounds.map(renderRoundSummary);
 
       const replaceSubmission = (submission: RoundSubmission): void => {
-        const activeRound = mapOption(gameState.activeRound, (round) => ({
+        const { cursor: previous } = gameState;
+        const cursor = mapOption(previous, (round) => ({
           ...round,
           submission,
         }));
-        const newGameState = loaded({ ...gameState, activeRound });
+        const newGameState = loaded({ ...gameState, cursor });
 
         update({
           ...state,
@@ -245,17 +175,29 @@ function Game(props: Props): React.FunctionComponentElement<{}> {
       return (
         <section className="y-content y-gutters x-gutters flex">
           <aside className="pr-5">
-            <header className="pb-2 mb-2 border-b border-black border-solid">
+            <header className="pb-2 mb-2">
+              <h2>
+                <b>{gameState.game.name}</b> started <span>{moment(gameState.game.created).fromNow()}</span>
+              </h2>
+            </header>
+            <table>
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Round No.</th>
+                </tr>
+              </thead>
+              <tbody>{roundSummaries}</tbody>
+            </table>
+          </aside>
+          <main data-role="main-game-contents" className="pl-3 block">
+            <header className="pb-2 mb-2">
               <Link to={`/lobbies/${lobby.id}`} className="block">
                 Back to Lobby
               </Link>
             </header>
-            <h2 className="pb-2 block">Rounds</h2>
-            <ul className="block">{roundSummaries}</ul>
-          </aside>
-          <main data-role="main-game-contents" className="pl-3 block">
             <RoundDisplay
-              round={gameState.activeRound}
+              round={gameState.cursor}
               updateSubmission={updateSubmission}
               submitSubmission={submitSubmission}
             />

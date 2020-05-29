@@ -1,14 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Redirect, useParams } from 'react-router-dom';
 import { AuthenticatedRoute } from '@krumpled/krumi/routing-utilities';
-import {
-  Result,
-  AsyncRequest,
-  loading,
-  failed,
-  loaded,
-  notAsked,
-} from '@krumpled/krumi/std';
+import { Result, AsyncRequest, loading, failed, loaded, notAsked } from '@krumpled/krumi/std';
 import { post } from '@krumpled/krumi/krumnet';
 import Loading from '@krumpled/krumi/components/application-loading';
 import ApplicationError from '@krumpled/krumi/components/application-error';
@@ -29,9 +22,7 @@ function init(): State {
 }
 
 async function create(lobbyId: string): Promise<Result<JoinResponse>> {
-  return (await post('/lobby-memberships', { lobbyId })) as Result<
-    JoinResponse
-  >;
+  return (await post('/lobby-memberships', { lobbyId })) as Result<JoinResponse>;
 }
 
 async function createMembership(lobbyId: string): Promise<{ id: string }> {
@@ -58,9 +49,7 @@ function JoinLobby(): React.FunctionComponentElement<{}> {
 
     const promise = createMembership(id);
     update({ attempt: loading(promise) });
-    promise
-      .then((data) => update({ attempt: loaded(data) }))
-      .catch((e) => update({ attempt: failed([e]) }));
+    promise.then((data) => update({ attempt: loaded(data) })).catch((e) => update({ attempt: failed([e]) }));
 
     log('sending join lobby "%s" attempt now', id);
   });

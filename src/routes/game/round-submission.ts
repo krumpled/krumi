@@ -1,9 +1,4 @@
-import {
-  AsyncRequest,
-  failed as failedRequest,
-  loaded,
-  loading,
-} from '@krumpled/krumi/std';
+import { AsyncRequest, failed as failedRequest, loaded, loading } from '@krumpled/krumi/std';
 
 export type Submitted = {
   kind: 'submitted';
