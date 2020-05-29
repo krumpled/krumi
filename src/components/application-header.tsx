@@ -5,11 +5,7 @@ import debug from 'debug';
 
 const log = debug('krumi:application-header');
 
-function Header({
-  session,
-}: {
-  session: Session;
-}): React.FunctionComponentElement<{}> {
+function Header({ session }: { session: Session }): React.FunctionComponentElement<{}> {
   switch (session.user.kind) {
     case 'some': {
       log('rendering authed header for token: {}', session.token);
@@ -31,9 +27,7 @@ function Header({
       );
     }
     case 'none':
-      return (
-        <header className="flex bg-gray-900 x-gutters py-5 items-center"></header>
-      );
+      return <header className="flex bg-gray-900 x-gutters py-5 items-center"></header>;
   }
 }
 

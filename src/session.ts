@@ -1,11 +1,4 @@
-import {
-  mapOption as mapMaybe,
-  resultToMaybe,
-  Result,
-  fromNullable,
-  none,
-  Option,
-} from '@krumpled/krumi/std';
+import { mapOption as mapMaybe, resultToMaybe, Result, fromNullable, none, Option } from '@krumpled/krumi/std';
 import config from '@krumpled/krumi/config';
 import { setToken, fetch } from '@krumpled/krumi/krumnet';
 import debug from 'debug';
@@ -63,9 +56,7 @@ async function loadFromStorage(): Promise<Session> {
       log("loading sesion from '%o'", key);
 
       try {
-        const result = (await fetch('/auth/identify')) as Result<
-          SessionPayload
-        >;
+        const result = (await fetch('/auth/identify')) as Result<SessionPayload>;
 
         if (result.kind === 'err') {
           return reset();

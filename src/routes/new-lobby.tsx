@@ -5,14 +5,7 @@ import Loading from '@krumpled/krumi/components/application-loading';
 import ApplicationError from '@krumpled/krumi/components/application-error';
 import { Session, isAuthenticated } from '@krumpled/krumi/session';
 import { AuthenticatedRoute } from '@krumpled/krumi/routing-utilities';
-import {
-  AsyncRequest,
-  loading,
-  notAsked,
-  loaded,
-  failed,
-  Result,
-} from '@krumpled/krumi/std';
+import { AsyncRequest, loading, notAsked, loaded, failed, Result } from '@krumpled/krumi/std';
 import { createAndPoll } from '@krumpled/krumi/krumnet';
 
 const log = debug('krumi:route.new-lobby');

@@ -11,10 +11,7 @@ export type Props = {
 function ApplicationError(props: Props): React.FunctionComponentElement<{}> {
   log('application-error - %o', props.errors);
   return (
-    <section
-      data-role="applicaiton-error"
-      className="flex items-center py-5 px-10"
-    >
+    <section data-role="applicaiton-error" className="flex items-center py-5 px-10">
       <p>
         <span>Something went wrong. </span>
         <Link to="/home">Return home.</Link>

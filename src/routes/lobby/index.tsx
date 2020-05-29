@@ -5,14 +5,7 @@ import Loading from '@krumpled/krumi/components/application-loading';
 import ApplicationError from '@krumpled/krumi/components/application-error';
 import moment from 'moment';
 import { fetch } from '@krumpled/krumi/krumnet';
-import {
-  Result,
-  AsyncRequest,
-  failed,
-  loaded,
-  notAsked,
-  loading,
-} from '@krumpled/krumi/std';
+import { Result, AsyncRequest, failed, loaded, notAsked, loading } from '@krumpled/krumi/std';
 import debug from 'debug';
 
 const log = debug('krumi:route.lobby');
@@ -45,7 +38,7 @@ type State = {
 };
 
 async function loadLobby(id: string): Promise<LobbyDetailResponse> {
-  const detail = (await fetch(`/lobbies/${id}`)) as Result<LobbyDetailResponse>;
+  const detail = (await fetch(`/lobbies`, { ids: [id] })) as Result<LobbyDetailResponse>;
 
   if (detail.kind === 'err') {
     const [e] = detail.errors;
@@ -60,24 +53,13 @@ function init(): State {
   return { id, data: notAsked() };
 }
 
-function renderGame(
-  game: LobbyGame,
-  lobbyId: string,
-): React.FunctionComponentElement<{}> {
+function renderGame(game: LobbyGame, lobbyId: string): React.FunctionComponentElement<{}> {
   const created = moment(game.created);
   log('rendering game created on "%s"', created.fromNow());
   return (
-    <tr
-      data-role="game"
-      className="py-2 px-3 text-left"
-      key={game.id}
-      data-rounds-remaining={game.roundsRemaining}
-    >
+    <tr data-role="game" className="py-2 px-3 text-left" key={game.id} data-rounds-remaining={game.roundsRemaining}>
       <td className="px-3 py-2">
-        <Link
-          to={`/lobbies/${lobbyId}/games/${game.id}`}
-          className="block pr-2"
-        >
+        <Link to={`/lobbies/${lobbyId}/games/${game.id}`} className="block pr-2">
           {game.name}
         </Link>
       </td>
@@ -94,11 +76,7 @@ function renderGame(
 function renderMember(member: LobbyMember): React.FunctionComponentElement<{}> {
   const joinedAt = member.joinedAt ? moment(member.joinedAt).fromNow() : '';
   return (
-    <tr
-      data-member-user-id={member.userId}
-      key={member.memberId}
-      data-member-membership-id={member.memberId}
-    >
+    <tr data-member-user-id={member.userId} key={member.memberId} data-member-membership-id={member.memberId}>
       <td className="text-left px-3 py-2">{member.name}</td>
       <td className="text-left px-3 py-2">{joinedAt}</td>
     </tr>

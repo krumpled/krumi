@@ -3,19 +3,14 @@ import {
   fromNullable,
   fuse as fuseOption,
   map as mapOption,
+  or as orOption,
   mapAsync as mapOptionAsync,
   unwrapOr as unwrapOptionOr,
   none,
   some,
 } from '@krumpled/krumi/std/option';
 import { Result, ok, err, map as mapResult } from '@krumpled/krumi/std/result';
-import {
-  AsyncRequest,
-  loading,
-  loaded,
-  notAsked,
-  failed,
-} from '@krumpled/krumi/std/async-request';
+import { AsyncRequest, loading, loaded, notAsked, failed } from '@krumpled/krumi/std/async-request';
 
 export function ready<T>(data: T, delay?: number): Promise<T> {
   return new Promise((resolve) => {
@@ -30,19 +25,14 @@ export function always<T>(item: T): () => T {
   return (): T => item;
 }
 
-function separateWords(
-  input: string,
-  options?: { separator?: string; split?: string },
-): string {
+function separateWords(input: string, options?: { separator?: string; split?: string }): string {
   const separator = options?.separator || '_';
   const split = options?.split || /(?=[A-Z])/;
   return input.split(split).join(separator);
 }
 
 function camelize(input: string): string {
-  const replaced = input.replace(/[-_\s]+(.)?/g, (_match, chr) =>
-    (chr || '').toUpperCase(),
-  );
+  const replaced = input.replace(/[-_\s]+(.)?/g, (_match, chr) => (chr || '').toUpperCase());
   return replaced.substr(0, 1).toLowerCase() + replaced.substr(1);
 }
 
@@ -137,4 +127,5 @@ export {
   unwrapOptionOr,
   mapOptionAsync,
   fuseOption,
+  orOption,
 };

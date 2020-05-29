@@ -4,15 +4,7 @@ import { AuthenticatedRoute } from '@krumpled/krumi/routing-utilities';
 import Loading from '@krumpled/krumi/components/application-loading';
 import ApplicationError from '@krumpled/krumi/components/application-error';
 import { createAndPoll } from '@krumpled/krumi/krumnet';
-import {
-  Result,
-  underscoreKeys,
-  AsyncRequest,
-  notAsked,
-  loading,
-  failed,
-  loaded,
-} from '@krumpled/krumi/std';
+import { Result, underscoreKeys, AsyncRequest, notAsked, loading, failed, loaded } from '@krumpled/krumi/std';
 import debug from 'debug';
 
 const log = debug('krumi:route.new-game');
@@ -87,9 +79,7 @@ function NewGame(): React.FunctionComponentElement<{}> {
         return <ApplicationError errors={result.errors} />;
       }
 
-      return (
-        <Redirect to={`/lobbies/${state.lobbyId}/games/${result.data.id}`} />
-      );
+      return <Redirect to={`/lobbies/${state.lobbyId}/games/${result.data.id}`} />;
     }
     case 'failed':
       return <ApplicationError errors={request.errors} />;

@@ -8,14 +8,8 @@ export type AuthenticatedRouteProps<T> = T & { session: Session };
 export function AuthenticatedRoute<T>(
   route: (props: T) => React.FunctionComponentElement<{}>,
 ): (props: AuthenticatedRouteProps<T>) => React.FunctionComponentElement<{}> {
-  function Inner(
-    props: AuthenticatedRouteProps<T>,
-  ): React.FunctionComponentElement<{}> {
-    return isAuthenticated(props.session) ? (
-      route(props)
-    ) : (
-      <Redirect to="/login" />
-    );
+  function Inner(props: AuthenticatedRouteProps<T>): React.FunctionComponentElement<{}> {
+    return isAuthenticated(props.session) ? route(props) : <Redirect to="/login" />;
   }
 
   Object.defineProperty(Inner, 'name', {

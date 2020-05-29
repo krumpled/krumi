@@ -1,24 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Route,
-  Redirect,
-  Switch,
-  BrowserRouter as Router,
-  useLocation,
-} from 'react-router-dom';
+import { Route, Redirect, Switch, BrowserRouter as Router, useLocation } from 'react-router-dom';
 import { render } from 'react-dom';
 import debug from 'debug';
 import Header from '@krumpled/krumi/components/application-header';
 import Loading from '@krumpled/krumi/components/application-loading';
 import ApplicationError from '@krumpled/krumi/components/application-error';
 import { none, fromNullable } from '@krumpled/krumi/std';
-import {
-  failed,
-  loaded,
-  loading,
-  notAsked,
-  AsyncRequest,
-} from '@krumpled/krumi/std/async-request';
+import { failed, loaded, loading, notAsked, AsyncRequest } from '@krumpled/krumi/std/async-request';
 import { Session, load as loadSession } from '@krumpled/krumi/session';
 import * as Routes from '@krumpled/krumi/routes';
 
@@ -34,9 +22,7 @@ function init(): State {
 
 // The AuthCallback route handles pulling the token out of the url query params and attempting to load the session
 // using it, immediately calling the update of our `Main` state and rendering a redirect back to home.
-function AuthCallback(props: {
-  update: (state: State) => void;
-}): React.FunctionComponentElement<{}> {
+function AuthCallback(props: { update: (state: State) => void }): React.FunctionComponentElement<{}> {
   const { search } = useLocation();
 
   const [[, token] = []] = search
@@ -148,10 +134,7 @@ function App(): React.FunctionComponentElement<{}> {
     <Router>
       <Switch>
         <Route path="/auth/logout">
-          <Routes.Logout
-            state={state}
-            update={(state): void => update(state)}
-          />
+          <Routes.Logout state={state} update={(state): void => update(state)} />
         </Route>
         <Route path="/auth/callback">
           <AuthCallback update={(state): void => update(state)} />

@@ -1,4 +1,8 @@
 import {
+  none,
+  some,
+  orOption,
+  mapOptionAsync,
   unwrapOptionOr,
   mapOption,
   fromNullable,
@@ -7,23 +11,43 @@ import {
   AsyncRequest,
 } from '@krumpled/krumi/std';
 import { useParams } from 'react-router-dom';
-import { RoundSubmission } from '@krumpled/krumi/routes/game/round-submission';
+import {
+  RoundSubmission,
+  empty as emptySubmission,
+  done as finishedSubmission,
+} from '@krumpled/krumi/routes/game/round-submission';
 import {
   GameDetailResponse,
   GameDetailRound,
   RoundDetailResponse,
+  fetchRoundDetails,
+  fetchGame,
 } from '@krumpled/krumi/routes/game/data-store';
 import { Session } from '@krumpled/krumi/session';
+import debug from 'debug';
+
+const log = debug('krumi:routes.game.state');
+
+export type VotingRound = {
+  kind: 'voting-round';
+  round: RoundDetailResponse;
+  options: Array<{ id: string; value: string }>;
+};
 
 export type ActiveRound = {
+  kind: 'active-round';
   round: RoundDetailResponse;
   submission: RoundSubmission;
 };
 
+type Round = ActiveRound | VotingRound;
+
+export type RoundCursor = Option<Round>;
+
 export type GameState = {
   lobby: { id: string };
   game: GameDetailResponse;
-  activeRound: Option<ActiveRound>;
+  cursor: RoundCursor;
 };
 
 export type State = {
@@ -40,7 +64,7 @@ export function init({ session }: { session: Session }): State {
   return { lobbyId, gameId, gameState: notAsked(), userId };
 }
 
-function isActive({ completed, started }: GameDetailRound): boolean {
+function isActive({ fulfilled: completed, started }: GameDetailRound): boolean {
   const now = new Date().getTime();
 
   if (!started || completed) {
@@ -50,27 +74,89 @@ function isActive({ completed, started }: GameDetailRound): boolean {
   return started < now;
 }
 
-export function findActiveRound(
-  rounds: Array<GameDetailRound>,
-): Option<GameDetailRound> {
-  const active = fromNullable(rounds.find(isActive));
-  return active;
+function findActiveRound(rounds: Array<GameDetailRound>): Option<GameDetailRound> {
+  return fromNullable(rounds.find(isActive));
 }
 
-export function changedActiveRound(
-  { gameState: current }: State,
-  { gameState: next }: State,
-): boolean {
+function findVotingRound(rounds: Array<GameDetailRound>): Option<GameDetailRound> {
+  const [match] = rounds.reduce((acc, round) => {
+    if (!round.fulfilled) {
+      return [none<GameDetailRound>()];
+    }
+
+    if (!round.fulfilled || round.completed) {
+      return acc;
+    }
+
+    return !acc.length
+      ? [some(round)]
+      : acc.map((opt) => mapOption(opt, (other) => (other.position < round.position ? other : round)));
+  }, new Array<Option<GameDetailRound>>());
+  return match || none();
+}
+
+export function changedActiveRound({ gameState: current }: State, { gameState: next }: State): boolean {
   if (current.kind !== 'loaded' || next.kind !== 'loaded') {
     return false;
   }
 
-  const maybeCurrent = mapOption(
-    current.data.activeRound,
-    ({ round }) => round.id,
-  );
-  const maybeNext = mapOption(next.data.activeRound, ({ round }) => round.id);
+  const maybeCurrent = mapOption(current.data.cursor, ({ round }) => round.id);
+  const maybeNext = mapOption(next.data.cursor, ({ round }) => round.id);
   const currentId = unwrapOptionOr(maybeCurrent, '');
   const nextId = unwrapOptionOr(maybeNext, '');
   return currentId !== nextId;
+}
+
+async function loadVotingRound(roundDetails: GameDetailRound): Promise<Round> {
+  log('fetching round details for voting round "%s"', roundDetails.id);
+  const round = await fetchRoundDetails(roundDetails.id);
+
+  if (round.kind === 'err') {
+    const [e] = round.errors;
+    return Promise.reject(e);
+  }
+
+  const options = round.data.entries.map(({ id, entry: value }) => ({ id, value }));
+  return { kind: 'voting-round', round: round.data, options };
+}
+
+async function loadRoundDetails(roundDetails: GameDetailRound, userId: string): Promise<Round> {
+  log('fetching round details for active round "%s"', roundDetails.id);
+  const round = await fetchRoundDetails(roundDetails.id);
+
+  if (round.kind === 'err') {
+    const [e] = round.errors;
+    return Promise.reject(e);
+  }
+
+  const entry = round.data.entries.find((e) => e.userId === userId);
+  const submission = entry && entry.entry ? finishedSubmission(entry.entry) : emptySubmission();
+
+  return {
+    submission,
+    round: round.data,
+    kind: 'active-round',
+  };
+}
+
+export async function load(state: State): Promise<GameState> {
+  const lobby = { id: state.lobbyId };
+
+  const res = await fetchGame(state.gameId);
+
+  if (res.kind === 'err') {
+    const [e] = res.errors;
+    return Promise.reject(e);
+  }
+
+  const { data: details } = res;
+
+  log('loaded game "%s" (created %s)', details.id, details.created);
+
+  const maybeActive = findActiveRound(details.rounds);
+  const activeRound = await mapOptionAsync(maybeActive, (details) => loadRoundDetails(details, state.userId));
+  const maybeVoting = findVotingRound(details.rounds);
+  const votingRound = await mapOptionAsync(maybeVoting, loadVotingRound);
+
+  return { lobby, game: details, cursor: orOption(activeRound, votingRound) };
 }

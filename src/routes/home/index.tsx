@@ -18,10 +18,7 @@ import { Session } from '@krumpled/krumi/session';
 import Loading from '@krumpled/krumi/components/application-loading';
 import ApplicationError from '@krumpled/krumi/components/application-error';
 import { LobbyInfo, leaving } from '@krumpled/krumi/routes/home/lobby-row';
-import {
-  loadLobbies,
-  leaveLobby,
-} from '@krumpled/krumi/routes/home/data-store';
+import { loadLobbies, leaveLobby } from '@krumpled/krumi/routes/home/data-store';
 import debug from 'debug';
 
 const log = debug('krumi:route.home');
@@ -29,8 +26,7 @@ const log = debug('krumi:route.home');
 const EMPTY_LOBBY_TABLE_ROW = (
   <tr>
     <td className="py-2 px-3" colSpan={5}>
-      No lobbies found, <Link to="/new-lobby">click here</Link> to create a new
-      one.
+      No lobbies found, <Link to="/new-lobby">click here</Link> to create a new one.
     </td>
   </tr>
 );
@@ -48,10 +44,7 @@ function init(): State {
   return { lobbies: notAsked(), joinLobby: none() };
 }
 
-function renderLobbyActions(
-  lobby: LobbyInfo,
-  leave: (lobby: LobbyInfo) => void,
-): React.FunctionComponentElement<{}> {
+function renderLobbyActions(lobby: LobbyInfo, leave: (lobby: LobbyInfo) => void): React.FunctionComponentElement<{}> {
   switch (lobby.action.kind) {
     case 'not-asked':
       return (
@@ -71,10 +64,7 @@ function renderLobbyActions(
   }
 }
 
-function renderLobby(
-  lobby: LobbyInfo,
-  leave: (lobby: LobbyInfo) => void,
-): React.FunctionComponentElement<{}> {
+function renderLobby(lobby: LobbyInfo, leave: (lobby: LobbyInfo) => void): React.FunctionComponentElement<{}> {
   const actions = renderLobbyActions(lobby, leave);
 
   const link = (
@@ -154,9 +144,7 @@ function Home(): React.FunctionComponentElement<{}> {
         update({ ...state, lobbies: loaded(nextLobbies) });
       };
 
-      const list = lobbies.data.length
-        ? lobbies.data.map((lobby) => renderLobby(lobby, leave))
-        : EMPTY_LOBBY_TABLE_ROW;
+      const list = lobbies.data.length ? lobbies.data.map((lobby) => renderLobby(lobby, leave)) : EMPTY_LOBBY_TABLE_ROW;
 
       if (state.joinLobby.kind === 'some' && state.joinLobby.data.sent) {
         const targetId = state.joinLobby.data.value.trim();
@@ -164,10 +152,7 @@ function Home(): React.FunctionComponentElement<{}> {
       }
 
       return (
-        <section
-          data-role="home"
-          className="x-gutters y-content y-gutters flex"
-        >
+        <section data-role="home" className="x-gutters y-content y-gutters flex">
           <aside data-role="lobby-list" className="block pr-4">
             <header className="flex pb-2 mb-2">
               <h2 className="block pr-2">Lobbies</h2>
@@ -192,10 +177,7 @@ function Home(): React.FunctionComponentElement<{}> {
               <input
                 type="text"
                 className="input-white"
-                value={
-                  unwrapOption(state.joinLobby, { value: '', sent: false })
-                    .value
-                }
+                value={unwrapOption(state.joinLobby, { value: '', sent: false }).value}
                 onChange={(e): void => {
                   update({
                     ...state,

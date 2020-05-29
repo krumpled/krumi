@@ -1,9 +1,6 @@
 import { Result, camelizeKeys } from '@krumpled/krumi/std';
 import { destroy, fetch } from '@krumpled/krumi/krumnet';
-import {
-  LobbyInfo,
-  initial as initializeLobbyInfo,
-} from '@krumpled/krumi/routes/home/lobby-row';
+import { LobbyInfo, initial as initializeLobbyInfo } from '@krumpled/krumi/routes/home/lobby-row';
 import debug from 'debug';
 
 const log = debug('krumi:route.home.data-store');

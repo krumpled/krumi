@@ -1,13 +1,7 @@
 import axios from 'axios';
 import debug from 'debug';
 import config from '@krumpled/krumi/config';
-import {
-  Result,
-  ok,
-  err,
-  camelizeKeys,
-  underscoreKeys,
-} from '@krumpled/krumi/std';
+import { Result, ok, err, camelizeKeys, underscoreKeys } from '@krumpled/krumi/std';
 
 const log = debug('krumi:krumnet');
 
@@ -32,10 +26,7 @@ function authorizationHeaders(): object {
   return { Authorization: authorization.token };
 }
 
-export async function destroy(
-  path: string,
-  payload?: object,
-): Promise<Result<object>> {
+export async function destroy(path: string, payload?: object): Promise<Result<object>> {
   const uri = `${config.krumnet.url}${path}`;
   log('DELETE to "%s"', uri);
   const headers = { ...authorizationHeaders() };
@@ -51,10 +42,7 @@ export async function destroy(
   }
 }
 
-export async function fetch(
-  path: string,
-  params?: object,
-): Promise<Result<object>> {
+export async function fetch(path: string, params?: object): Promise<Result<object>> {
   const uri = `${config.krumnet.url}${path}`;
   log('fetching "%s"', uri);
   const headers = { ...authorizationHeaders() };
@@ -89,10 +77,7 @@ export async function post<T>(path: string, data?: T): Promise<Result<object>> {
   }
 }
 
-export async function createAndPoll<T>(
-  path: string,
-  data?: T,
-): Promise<Result<{ id: string }>> {
+export async function createAndPoll<T>(path: string, data?: T): Promise<Result<{ id: string }>> {
   const job = (await post(path, data)) as Result<{ id: string }>;
 
   if (job.kind === 'err') {
@@ -119,7 +104,5 @@ export async function createAndPoll<T>(
     await new Promise((resolve) => setTimeout(resolve, 1000 + count * 100));
   }
 
-  return err([
-    new Error(`job ${job.data.id} not finished after ${count} attempts`),
-  ]);
+  return err([new Error(`job ${job.data.id} not finished after ${count} attempts`)]);
 }

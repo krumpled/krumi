@@ -9,10 +9,7 @@ export type LobbyInfo = {
   action: AsyncRequest<string>;
 };
 
-export function leaving(
-  lobby: Omit<LobbyInfo, 'action'>,
-  promise: Promise<string>,
-): LobbyInfo {
+export function leaving(lobby: Omit<LobbyInfo, 'action'>, promise: Promise<string>): LobbyInfo {
   return { ...lobby, action: loading(promise) };
 }
 
