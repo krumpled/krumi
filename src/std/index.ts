@@ -9,7 +9,7 @@ import {
   none,
   some,
 } from '@krumpled/krumi/std/option';
-import { Result, ok, err, map as mapResult } from '@krumpled/krumi/std/result';
+import { Result, asPromise as resultToPromise, ok, err, map as mapResult } from '@krumpled/krumi/std/result';
 import { AsyncRequest, loading, loaded, notAsked, failed } from '@krumpled/krumi/std/async-request';
 
 export function ready<T>(data: T, delay?: number): Promise<T> {
@@ -128,4 +128,5 @@ export {
   mapOptionAsync,
   fuseOption,
   orOption,
+  resultToPromise,
 };

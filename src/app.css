@@ -40,6 +40,13 @@ a {
   @apply block;
   @apply px-3;
   @apply py-2;
+  @apply bg-white;
+  @apply text-black;
+  @apply rounded;
+}
+
+.btn[disabled] {
+  @apply text-gray-500;
 }
 
 .input-white {
