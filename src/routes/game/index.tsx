@@ -16,7 +16,7 @@ import {
   empty as emptySubmission,
   done as finishedSubmission,
 } from '@krumpled/krumi/routes/game/round-submission';
-import { GameDetailRound, createEntry } from '@krumpled/krumi/routes/game/data-store';
+import { GameDetailRound, createEntry, createVote } from '@krumpled/krumi/routes/game/data-store';
 import RoundDisplay from '@krumpled/krumi/routes/game/round-display';
 
 const log = debug('krumi:route.game');
@@ -160,16 +160,32 @@ function Game(props: Props): React.FunctionComponentElement<{}> {
         const submission = pendingSubmission(promise);
 
         promise
-          .then((result) => {
-            const finished = finishedSubmission(result.entry);
-            replaceSubmission(finished);
-          })
-          .catch((e) => {
-            const failed = failedSubmission(e);
-            replaceSubmission(failed);
-          });
+          .then((result) => finishedSubmission(result.entry))
+          .catch((e) => failedSubmission(e))
+          .then((submission) => replaceSubmission(submission));
 
         replaceSubmission(submission);
+      };
+
+      const voteForEntry = (roundId: string, entryId: string): void => {
+        const { cursor: previous } = gameState;
+        const promise = createVote(roundId, entryId);
+        const vote = loading(promise);
+        const cursor = mapOption(previous, (r) => ({ ...r, vote }));
+        const newGameState = loaded({ ...gameState, cursor });
+        update({ ...state, gameState: newGameState });
+
+        promise
+          .then(loaded)
+          .catch((e) => failed<{ id: string }>(e))
+          .then((vote) => mapOption(previous, (r) => ({ ...r, vote })))
+          .then((cursor) => {
+            const newGameState = loaded({ ...gameState, cursor });
+            log('vote complete, updating game state');
+            update({ ...state, gameState: newGameState });
+          });
+
+        log('voting for entry "%s" for round "%s"', roundId, entryId);
       };
 
       return (
@@ -200,6 +216,7 @@ function Game(props: Props): React.FunctionComponentElement<{}> {
               round={gameState.cursor}
               updateSubmission={updateSubmission}
               submitSubmission={submitSubmission}
+              voteForEntry={voteForEntry}
             />
           </main>
         </section>

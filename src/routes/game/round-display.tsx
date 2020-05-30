@@ -1,4 +1,5 @@
 import React from 'react';
+import { AsyncRequest } from '@krumpled/krumi/std';
 import { RoundCursor as ActiveRound, ActiveRound as EntryRound, VotingRound } from '@krumpled/krumi/routes/game/state';
 import { RoundSubmission as Submission } from '@krumpled/krumi/routes/game/round-submission';
 import Loading from '@krumpled/krumi/components/application-loading';
@@ -12,6 +13,7 @@ type Props = {
   round: ActiveRound;
   updateSubmission: (value: string) => void;
   submitSubmission: (roundId: string, value: string) => void;
+  voteForEntry: (roundId: string, entryId: string) => void;
 };
 
 function SubmissionDisplay(props: {
@@ -97,22 +99,34 @@ function EntryRoundDisplay(props: EntryRoundDisplayProps): React.FunctionCompone
 
 type VotingRoundProps = {
   cursor: VotingRound;
+  voteForEntry: (roundId: string, entryId: string) => void;
 } & Omit<Props, 'round'>;
 
-function renderOptionRow(option: { id: string; value: string }): React.FunctionComponentElement<{}> {
+function renderOptionRow(
+  option: { id: string; value: string },
+  activeVote: AsyncRequest<{ id: string }>,
+  voteForEntry: (id: string) => void,
+): React.FunctionComponentElement<{}> {
   return (
     <tr key={option.id} data-option-id={option.id}>
       <td>{option.value}</td>
       <td>
-        <button className="block">vote</button>
+        <button
+          className="block btn"
+          disabled={activeVote.kind !== 'not-asked'}
+          onClick={(): void => voteForEntry(option.id)}
+        >
+          vote
+        </button>
       </td>
     </tr>
   );
 }
 
 function VotingRoundDisplay(props: VotingRoundProps): React.FunctionComponentElement<{}> {
-  const { round, options } = props.cursor;
-  const renderedOptions = options.map(renderOptionRow);
+  const { round, options, vote } = props.cursor;
+  const voteForEntry = (entryId: string): void => props.voteForEntry(round.id, entryId);
+  const renderedOptions = options.map((option) => renderOptionRow(option, vote, voteForEntry));
 
   return (
     <section data-role="voting-round">

@@ -32,6 +32,7 @@ export type VotingRound = {
   kind: 'voting-round';
   round: RoundDetailResponse;
   options: Array<{ id: string; value: string }>;
+  vote: AsyncRequest<{ id: string }>;
 };
 
 export type ActiveRound = {
@@ -117,7 +118,12 @@ async function loadVotingRound(roundDetails: GameDetailRound): Promise<Round> {
   }
 
   const options = round.data.entries.map(({ id, entry: value }) => ({ id, value }));
-  return { kind: 'voting-round', round: round.data, options };
+  return {
+    kind: 'voting-round',
+    round: round.data,
+    options,
+    vote: notAsked(),
+  };
 }
 
 async function loadRoundDetails(roundDetails: GameDetailRound, userId: string): Promise<Round> {

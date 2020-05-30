@@ -1,5 +1,5 @@
 import { fetch, post } from '@krumpled/krumi/krumnet';
-import { Result } from '@krumpled/krumi/std';
+import { Result, resultToPromise } from '@krumpled/krumi/std';
 import debug from 'debug';
 
 const log = debug('krumi:routes.game.data-store');
@@ -60,13 +60,14 @@ export async function fetchRoundDetails(roundId: string): Promise<Result<RoundDe
 
 export async function createEntry(roundId: string, entry: string): Promise<{ entry: string }> {
   log('creating entry "%s" for round "%s"', entry, roundId);
-
   const result = await post('/round-entries', { entry, roundId });
+  return resultToPromise(result as Result<{ entry: string }>);
+}
 
-  if (result.kind === 'err') {
-    const [e] = result.errors;
-    return Promise.reject(e);
-  }
-
-  return Promise.resolve({ entry });
+export async function createVote(roundId: string, entryId: string): Promise<{ id: string }> {
+  log('creating vote "%s" for round "%s"', entryId, roundId);
+  const result = { id: 'hi' };
+  await post('/round-entry-votes', { entryId, roundId });
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  return result;
 }

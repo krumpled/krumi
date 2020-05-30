@@ -13,3 +13,7 @@ export function err<T>(errors: Array<Error>): Result<T> {
 export function map<T, U>(res: Result<T>, mapper: (inner: T) => U): Result<U> {
   return res.kind === 'ok' ? ok(mapper(res.data)) : err(res.errors);
 }
+
+export function asPromise<T>(res: Result<T>): Promise<T> {
+  return res.kind === 'err' ? Promise.reject(res.errors[0]) : Promise.resolve(res.data);
+}
