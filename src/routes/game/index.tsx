@@ -8,7 +8,7 @@ import { mapOption, loaded, failed, loading, ready } from '@krumpled/krumi/std';
 import ApplicationError from '@krumpled/krumi/components/application-error';
 import Loading from '@krumpled/krumi/components/application-loading';
 import debug from 'debug';
-import { State, init, load, changedActiveRound } from '@krumpled/krumi/routes/game/state';
+import { State, init, load, changedActiveRound, GameState } from '@krumpled/krumi/routes/game/state';
 import {
   RoundSubmission,
   failed as failedSubmission,
@@ -91,6 +91,97 @@ type Props = {
   session: Session;
 };
 
+type ActiveGameProps = {
+  gameState: GameState;
+  update: (state: GameState) => void;
+};
+
+function ActiveGame(props: ActiveGameProps): React.FunctionComponentElement<{}> {
+  const replaceSubmission = (submission: RoundSubmission): void => {
+    const { cursor: previous } = props.gameState;
+    const cursor = mapOption(previous, (round) => ({
+      ...round,
+      submission,
+    }));
+
+    props.update({ ...props.gameState, cursor });
+  };
+
+  const updateSubmission = (value: string): void => {
+    log('updating submission "%s"', value);
+    const submission = emptySubmission(value);
+    replaceSubmission(submission);
+  };
+
+  const submitSubmission = (roundId: string, value: string): void => {
+    log('sending submission "%s"', value);
+    const promise = createEntry(roundId, value);
+    const submission = pendingSubmission(promise);
+
+    promise
+      .then((result) => finishedSubmission(result.entry))
+      .catch((e) => failedSubmission(e))
+      .then((submission) => replaceSubmission(submission));
+
+    replaceSubmission(submission);
+  };
+
+  const voteForEntry = (roundId: string, entryId: string): void => {
+    const { cursor: previous } = props.gameState;
+    const promise = createVote(roundId, entryId);
+    const vote = loading(promise);
+    const cursor = mapOption(previous, (r) => ({ ...r, vote }));
+    props.update({ ...props.gameState, cursor });
+
+    promise
+      .then(loaded)
+      .catch((e) => failed<{ id: string }>(e))
+      .then((vote) => mapOption(previous, (r) => ({ ...r, vote })))
+      .then((cursor) => {
+        log('vote complete, updating game state');
+        props.update({ ...props.gameState, cursor });
+      });
+
+    log('voting for entry "%s" for round "%s"', roundId, entryId);
+  };
+
+  return (
+    <RoundDisplay
+      round={props.gameState.cursor}
+      updateSubmission={updateSubmission}
+      submitSubmission={submitSubmission}
+      voteForEntry={voteForEntry}
+    />
+  );
+}
+
+function EndedGame(props: { game: GameState['game'] }): React.FunctionComponentElement<{}> {
+  const endedAgo = props.game.ended ? moment(props.game.ended).fromNow() : '';
+  const placements = props.game.placements.map((place) => {
+    return (
+      <tr data-role="placement" data-placement-id={place.id} key={place.id}>
+        <td>{place.place}</td>
+        <td>{place.userName}</td>
+      </tr>
+    );
+  });
+
+  return (
+    <article data-role="game-results">
+      <h2>Ended {endedAgo}</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Place</th>
+            <th>Name</th>
+          </tr>
+        </thead>
+        <tbody>{placements}</tbody>
+      </table>
+    </article>
+  );
+}
+
 function Game(props: Props): React.FunctionComponentElement<{}> {
   const [state, update] = useState(init({ session: props.session }));
 
@@ -99,7 +190,14 @@ function Game(props: Props): React.FunctionComponentElement<{}> {
 
     switch (details.kind) {
       case 'loaded': {
-        log('finished loading game, starting poll interval');
+        const { id: gameId, ended } = details.data.game;
+
+        if (ended) {
+          log('game "%s" appears to be ended, skipping update polling', gameId);
+          return;
+        }
+
+        log('game "%s" in progress, starting update polling', gameId);
         return poll(state, update);
       }
       case 'not-asked': {
@@ -133,60 +231,12 @@ function Game(props: Props): React.FunctionComponentElement<{}> {
 
       log('game "%s" loaded', game.id);
       const roundSummaries = game.rounds.map(renderRoundSummary);
+      const updateGameState = (newState: GameState): void => update({ ...state, gameState: loaded(newState) });
 
-      const replaceSubmission = (submission: RoundSubmission): void => {
-        const { cursor: previous } = gameState;
-        const cursor = mapOption(previous, (round) => ({
-          ...round,
-          submission,
-        }));
-        const newGameState = loaded({ ...gameState, cursor });
-
-        update({
-          ...state,
-          gameState: newGameState,
-        });
-      };
-
-      const updateSubmission = (value: string): void => {
-        log('updating submission "%s"', value);
-        const submission = emptySubmission(value);
-        replaceSubmission(submission);
-      };
-
-      const submitSubmission = (roundId: string, value: string): void => {
-        log('sending submission "%s"', value);
-        const promise = createEntry(roundId, value);
-        const submission = pendingSubmission(promise);
-
-        promise
-          .then((result) => finishedSubmission(result.entry))
-          .catch((e) => failedSubmission(e))
-          .then((submission) => replaceSubmission(submission));
-
-        replaceSubmission(submission);
-      };
-
-      const voteForEntry = (roundId: string, entryId: string): void => {
-        const { cursor: previous } = gameState;
-        const promise = createVote(roundId, entryId);
-        const vote = loading(promise);
-        const cursor = mapOption(previous, (r) => ({ ...r, vote }));
-        const newGameState = loaded({ ...gameState, cursor });
-        update({ ...state, gameState: newGameState });
-
-        promise
-          .then(loaded)
-          .catch((e) => failed<{ id: string }>(e))
-          .then((vote) => mapOption(previous, (r) => ({ ...r, vote })))
-          .then((cursor) => {
-            const newGameState = loaded({ ...gameState, cursor });
-            log('vote complete, updating game state');
-            update({ ...state, gameState: newGameState });
-          });
-
-        log('voting for entry "%s" for round "%s"', roundId, entryId);
-      };
+      const content =
+        game.ended && game.placements && game.placements.length
+          ? EndedGame({ game })
+          : ActiveGame({ update: updateGameState, gameState });
 
       return (
         <section className="y-content y-gutters x-gutters flex">
@@ -212,12 +262,7 @@ function Game(props: Props): React.FunctionComponentElement<{}> {
                 Back to Lobby
               </Link>
             </header>
-            <RoundDisplay
-              round={gameState.cursor}
-              updateSubmission={updateSubmission}
-              submitSubmission={submitSubmission}
-              voteForEntry={voteForEntry}
-            />
+            {content}
           </main>
         </section>
       );
