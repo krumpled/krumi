@@ -21,12 +21,20 @@ export type GameDetailMember = {
   email: string;
 };
 
+export type GameDetailPlacement = {
+  id: string;
+  userName: string;
+  place: number;
+};
+
 export type GameDetailResponse = {
   id: string;
   name: string;
   created: number;
+  ended: number | null;
   members: Array<GameDetailMember>;
   rounds: Array<GameDetailRound>;
+  placements: Array<GameDetailPlacement>;
 };
 
 export type RoundEntry = {
