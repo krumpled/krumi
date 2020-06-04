@@ -4,12 +4,14 @@ import moment from 'moment';
 import { AuthenticatedRoute } from '@krumpled/krumi/routing-utilities';
 import {
   mapOption,
+  getAsyncRequestPromise as getPromise,
+  flattenOptions,
+  noop,
   unwrapOptionOr as unwrapOption,
   Option,
   none,
   AsyncRequest,
   loaded,
-  failed,
   notAsked,
   loading,
   some,
@@ -90,126 +92,78 @@ function renderLobby(lobby: LobbyInfo, leave: (lobby: LobbyInfo) => void): React
   );
 }
 
+async function eff(state: State, update: (state: State) => void): Promise<State> {
+  const { lobbies } = state;
+
+  if (lobbies.kind === 'not-asked') {
+    const attempt = loadLobbies();
+    log('lobbies not yet requested, loading');
+    update({ ...state, lobbies: loading(attempt) });
+    const result = loaded(await attempt);
+    const next = { ...state, lobbies: result };
+    log('lobbies loaded');
+    update(next);
+    return next;
+  }
+
+  // If we're loaded, check to see if we're currently leaving any lobbies.
+  if (lobbies.kind === 'loaded') {
+    const { data: lobbyList } = lobbies;
+    const promises = flattenOptions(lobbyList.map((lobby) => getPromise(lobby.action)));
+
+    if (promises.length) {
+      await Promise.all([promises]);
+      update(init());
+    }
+  }
+
+  return state;
+}
+
 function Home(): React.FunctionComponentElement<{}> {
   const [state, update] = useState(init());
 
   useEffect(() => {
-    const { lobbies } = state;
+    const semo = { current: true };
+    const innerUpdate = (state: State): void => {
+      log('update received, should apply - "%s"', semo.current);
+      return semo.current ? update(state) : noop();
+    };
+    eff(state, innerUpdate);
 
-    if (lobbies.kind === 'not-asked') {
-      const promise = loadLobbies();
-      const lobbies = loading(promise);
-
-      promise
-        .then((data) => update({ ...state, lobbies: loaded(data) }))
-        .catch((e) => update({ ...state, lobbies: failed([e]) }));
-
-      update({ ...state, lobbies });
-      return;
-    }
-
-    if (lobbies.kind === 'loaded') {
-      const promises = lobbies.data.reduce((acc, { action }) => {
-        return action.kind === 'loading' ? [...acc, action.promise] : acc;
-      }, new Array<Promise<string>>());
-
-      if (promises.length) {
-        Promise.all(promises)
-          .then(() => update(init()))
-          .catch((errors) => update({ ...state, lobbies: failed(errors) }));
-      }
-    }
-
-    log('home effect, state - %o', state);
+    return (): void => {
+      log('cleaning up lobby effect, currently "%s"', state.lobbies.kind);
+      return noop((semo.current = state.lobbies.kind === 'not-asked'));
+    };
   });
 
   const { lobbies } = state;
-  log('user logged in, rendering content');
 
-  switch (lobbies.kind) {
-    case 'not-asked':
-    case 'loading':
-      return (
-        <section data-role="home" className="x-gutters y-content y-gutters">
-          <Loading />
-        </section>
-      );
-    case 'loaded': {
-      const leave = (lobby: LobbyInfo): void => {
-        log("leaving lobby '%s'", lobby.name);
-        const promise = leaveLobby(lobby);
-        const nextLobbies = lobbies.data.map((existing) =>
-          existing.id === lobby.id ? leaving(lobby, promise) : existing,
-        );
-        update({ ...state, lobbies: loaded(nextLobbies) });
-      };
-
-      const list = lobbies.data.length ? lobbies.data.map((lobby) => renderLobby(lobby, leave)) : EMPTY_LOBBY_TABLE_ROW;
-
-      if (state.joinLobby.kind === 'some' && state.joinLobby.data.sent) {
-        const targetId = state.joinLobby.data.value.trim();
-        return <Redirect to={`/join-lobby/${targetId}`} />;
-      }
-
-      return (
-        <section data-role="home" className="x-gutters y-content y-gutters flex">
-          <aside data-role="lobby-list" className="block pr-4">
-            <header className="flex pb-2 mb-2">
-              <h2 className="block pr-2">Lobbies</h2>
-              <Link to="/new-lobby">New</Link>
-            </header>
-            <table>
-              <thead>
-                <tr>
-                  <th className="pr-3 py-2 text-left">Name</th>
-                  <th className="px-3 py-2 text-left">Created</th>
-                  <th className="px-3 py-2 text-left">Games</th>
-                  <th className="px-3 py-2 text-left">Members</th>
-                  <th className="px-3 py-2 text-left"></th>
-                </tr>
-              </thead>
-              <tbody>{list}</tbody>
-            </table>
-          </aside>
-          <aside className="pl-4 block">
-            <h2 className="block pb-2 mb-2">Join</h2>
-            <div className="block flex items-center">
-              <input
-                type="text"
-                className="input-white"
-                value={unwrapOption(state.joinLobby, { value: '', sent: false }).value}
-                onChange={(e): void => {
-                  update({
-                    ...state,
-                    joinLobby: some({
-                      value: (e.target as HTMLInputElement).value,
-                      sent: false,
-                    }),
-                  });
-                }}
-              />
-              <button
-                className="btn ml-2"
-                onClick={(): void => {
-                  update({
-                    ...state,
-                    joinLobby: mapOption(state.joinLobby, ({ value }) => ({
-                      value,
-                      sent: true,
-                    })),
-                  });
-                }}
-              >
-                go
-              </button>
-            </div>
-          </aside>
-        </section>
-      );
-    }
-    case 'failed':
-      return <ApplicationError errors={lobbies.errors} />;
+  if (lobbies.kind === 'not-asked' || lobbies.kind === 'loading') {
+    return (
+      <section data-role="home" className="x-gutters y-content y-gutters">
+        <Loading />
+      </section>
+    );
+  } else if (lobbies.kind === 'failed') {
+    return <ApplicationError errors={lobbies.errors} />;
   }
+
+  const leave = (lobby: LobbyInfo): void => {
+    log("leaving lobby '%s'", lobby.name);
+    const promise = leaveLobby(lobby);
+    const nextLobbies = lobbies.data.map((existing) => (existing.id === lobby.id ? leaving(lobby, promise) : existing));
+    update({ ...state, lobbies: loaded(nextLobbies) });
+  };
+
+  const list = lobbies.data.length ? lobbies.data.map((lobby) => renderLobby(lobby, leave)) : EMPTY_LOBBY_TABLE_ROW;
+
+  if (state.joinLobby.kind === 'some' && state.joinLobby.data.sent) {
+    const targetId = state.joinLobby.data.value.trim();
+    return <Redirect to={`/join-lobby/${targetId}`} />;
+  }
+
+  return <section data-role="home" className="x-gutters y-content y-gutters flex"></section>;
 }
 
 export default AuthenticatedRoute(Home);

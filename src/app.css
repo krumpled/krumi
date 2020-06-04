@@ -2,7 +2,8 @@
 @import "tailwindcss/utilities";
 
 html, body, #main {
-  @apply bg-gray-700 text-gray-100;
+  @apply bg-gray-100;
+  @apply text-gray-900;
   min-width: 100%;
   min-height: 100%;
   position: relative;
@@ -38,11 +39,19 @@ a {
 
 .btn {
   @apply block;
+  @apply shadow-xs;
   @apply px-3;
   @apply py-2;
   @apply bg-white;
   @apply text-black;
+  @apply border;
+  @apply border-solid;
+  @apply border-gray-500;
   @apply rounded;
+}
+
+.btn:not(:disabled):hover {
+  @apply .shadow-sm;
 }
 
 .btn[disabled] {

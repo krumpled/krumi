@@ -109,6 +109,17 @@ export function resultToMaybe<T>(res: Result<T>): Option<T> {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-function,@typescript-eslint/no-unused-vars
+export function noop(...swallowed: Array<unknown>): void {}
+
+export function flattenOptions<T>(input: Array<Option<T>>): Array<T> {
+  return input.reduce((acc, item) => (item.kind === 'some' ? [...acc, item.data] : acc), new Array<T>());
+}
+
+export function getAsyncRequestPromise<T>(request: AsyncRequest<T>): Option<Promise<T>> {
+  return request.kind === 'loading' ? some(request.promise) : none();
+}
+
 export {
   none,
   some,
