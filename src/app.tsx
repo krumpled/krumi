@@ -86,6 +86,9 @@ function Main(props: { state: State }): React.FunctionComponentElement<{}> {
             <Route extact path="/home">
               <Routes.Home session={session.data} />
             </Route>
+            <Route extact path="/poll-lobby/:id">
+              <Routes.PollLobby session={session.data} />
+            </Route>
             <Route extact path="/join-lobby/:id">
               <Routes.JoinLobby session={session.data} />
             </Route>

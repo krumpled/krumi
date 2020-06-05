@@ -18,10 +18,12 @@ import {
 } from '@krumpled/krumi/routes/game/round-submission';
 import {
   GameDetailResponse,
+  LobbyDetailResponse,
   GameDetailRound,
   RoundDetailResponse,
   fetchRoundDetails,
   fetchGame,
+  fetchLobby,
 } from '@krumpled/krumi/routes/game/data-store';
 import { Session } from '@krumpled/krumi/session';
 import debug from 'debug';
@@ -46,7 +48,7 @@ type Round = ActiveRound | VotingRound;
 export type RoundCursor = Option<Round>;
 
 export type GameState = {
-  lobby: { id: string };
+  lobby: LobbyDetailResponse;
   game: GameDetailResponse;
   cursor: RoundCursor;
 };
@@ -146,9 +148,12 @@ async function loadRoundDetails(roundDetails: GameDetailRound, userId: string): 
 }
 
 export async function load(state: State): Promise<GameState> {
-  const lobby = { id: state.lobbyId };
+  const [res, lobby] = await Promise.all([fetchGame(state.gameId), fetchLobby(state.lobbyId)]);
 
-  const res = await fetchGame(state.gameId);
+  if (lobby.kind === 'err') {
+    const [e] = lobby.errors;
+    return Promise.reject(e);
+  }
 
   if (res.kind === 'err') {
     const [e] = res.errors;
@@ -164,5 +169,5 @@ export async function load(state: State): Promise<GameState> {
   const maybeVoting = findVotingRound(details.rounds);
   const votingRound = await mapOptionAsync(maybeVoting, loadVotingRound);
 
-  return { lobby, game: details, cursor: orOption(activeRound, votingRound) };
+  return { lobby: lobby.data, game: details, cursor: orOption(activeRound, votingRound) };
 }

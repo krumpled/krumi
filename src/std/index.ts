@@ -98,6 +98,19 @@ export function underscoreKeys(input: any): any {
   }, {} as object);
 }
 
+export function findQueryValue(key: string, search: string): Option<Array<string>> {
+  const parts = search.charAt(0) === '?' ? search.substr(1).split('&') : search.split('&');
+  const mappings = parts.reduce((acc, part) => {
+    const [key, value] = part.split('=');
+    if (!key || !value) {
+      return acc;
+    }
+    const previous = acc[key] || [];
+    return { ...acc, [key]: [...previous, value] };
+  }, {} as Record<string, Array<string>>);
+  return fromNullable(mappings[key]);
+}
+
 export function resultToMaybe<T>(res: Result<T>): Option<T> {
   switch (res.kind) {
     case 'err':

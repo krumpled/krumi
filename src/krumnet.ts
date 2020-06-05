@@ -1,7 +1,7 @@
 import axios from 'axios';
 import debug from 'debug';
 import config from '@krumpled/krumi/config';
-import { Result, ok, err, camelizeKeys, underscoreKeys } from '@krumpled/krumi/std';
+import { noop, Result, ok, err, camelizeKeys, underscoreKeys } from '@krumpled/krumi/std';
 
 const log = debug('krumi:krumnet');
 
@@ -77,7 +77,22 @@ export async function post<T>(path: string, data?: T): Promise<Result<object>> {
   }
 }
 
-export async function createAndPoll<T>(path: string, data?: T): Promise<Result<{ id: string }>> {
+export type Cancellation = { kind: 'cancel' };
+export type Semo = Promise<Cancellation>;
+
+export function newSemo(): [Semo, () => void] {
+  let res = noop;
+
+  const semo = new Promise<Cancellation>((resolve) => {
+    res = (): void => {
+      resolve({ kind: 'cancel' });
+    };
+  });
+
+  return [semo, res];
+}
+
+export async function createAndPoll<T>(path: string, data?: T, semo?: Semo): Promise<Result<{ id: string }>> {
   const job = (await post(path, data)) as Result<{ id: string }>;
 
   if (job.kind === 'err') {
@@ -88,7 +103,14 @@ export async function createAndPoll<T>(path: string, data?: T): Promise<Result<{
   const query = { id: job.data.id };
 
   while (++count < 1000) {
-    const job = (await fetch('/jobs', query)) as Result<QueuedJob>;
+    const request = fetch('/jobs', query) as Promise<Result<QueuedJob>>;
+    const out = await (semo ? Promise.race([semo, request]) : request);
+
+    if (out && out.kind === 'cancel') {
+      return Promise.reject(new Error('cancelled'));
+    }
+
+    const job: Result<QueuedJob> = out;
 
     if (job.kind === 'err') {
       return job;

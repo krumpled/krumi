@@ -4,7 +4,6 @@ import { RoundCursor as ActiveRound, ActiveRound as EntryRound, VotingRound } fr
 import { RoundSubmission as Submission } from '@krumpled/krumi/routes/game/round-submission';
 import Loading from '@krumpled/krumi/components/application-loading';
 import ApplicationError from '@krumpled/krumi/components/application-error';
-import moment from 'moment';
 import debug from 'debug';
 
 const log = debug('krumi:routes.game.round-display');
@@ -23,40 +22,44 @@ function SubmissionDisplay(props: {
 }): React.FunctionComponentElement<{}> {
   const { submission } = props;
 
-  switch (submission.kind) {
-    case 'not-submitted':
-      return (
-        <div data-role="submission-form" className="flex items-center">
-          <input
-            type="text"
-            className="input-white mr-3"
-            value={submission.value}
-            onChange={(evt): void => props.update((evt.target as HTMLInputElement).value)}
-          />
-          <button className="btn" onClick={(): void => props.submit(submission.value)}>
-            Submit
-          </button>
-        </div>
-      );
-    case 'submitted': {
-      const { submission: request } = submission;
-      switch (request.kind) {
-        case 'not-asked':
-        case 'loading':
-          return <Loading />;
-        case 'failed':
-          return <ApplicationError errors={request.errors} />;
-        case 'loaded': {
-          const text = request.data.entry;
-          return (
-            <div>
-              your response: <span>{text}</span>
-            </div>
-          );
-        }
-      }
-    }
+  if (submission.kind === 'not-submitted') {
+    return (
+      <section data-role="submission-form" className="flex items-center w-full">
+        <input
+          type="text"
+          className="input-white mr-3 w-full"
+          value={submission.value}
+          onChange={(evt): void => props.update((evt.target as HTMLInputElement).value)}
+        />
+        <button className="btn" onClick={(): void => props.submit(submission.value)}>
+          Submit
+        </button>
+      </section>
+    );
   }
+
+  const { submission: request } = submission;
+
+  if (request.kind === 'not-asked' || request.kind === 'loading') {
+    return <Loading />;
+  } else if (request.kind === 'failed') {
+    return <ApplicationError errors={request.errors} />;
+  }
+
+  const text = request.data.entry;
+  return (
+    <section data-role="submission-waiting">
+      <article data-role="user-submission" className="flex items-center">
+        <h1 className="block mr-3 text-gray-500">Entry:</h1>
+        <div className="py-3 w-full px-3 bg-white border border-solid border-gray-300 rounded-sm text-center">
+          <span>{text}</span>
+        </div>
+      </article>
+      <div className="text-center mt-5">
+        <i className="text-gray-500 italic">Waiting for others...</i>
+      </div>
+    </section>
+  );
 }
 
 type EntryRoundDisplayProps = {
@@ -65,22 +68,17 @@ type EntryRoundDisplayProps = {
 
 function EntryRoundDisplay(props: EntryRoundDisplayProps): React.FunctionComponentElement<{}> {
   const { round: details, submission } = props.cursor;
-  const prompt = <div>{details.prompt}</div>;
 
   return (
     <article data-role="active-round" className="block" data-round-id={details.id}>
-      <header className="block mb-2 pb-2">
-        <h2 className="block">
-          <span>
-            Round #<span>{details.position + 1}</span>
-          </span>
-          <span> (started {moment(details.started).fromNow()})</span>
-        </h2>
-      </header>
-      <section data-role="prompt" className="pb-2 mb-2">
-        {prompt}
+      <h1 className="block m-auto text-center mb-3 text-gray-500">Your Prompt</h1>
+      <section
+        data-role="prompt"
+        className="py-3 mb-2 text-center bg-white border border-solid rounded border-gray-300"
+      >
+        <h1>{details.prompt || 'Freeform!'}</h1>
       </section>
-      <section data-role="submission">
+      <section className="mt-5 pt-5 border-t border-solid border-gray-400">
         <SubmissionDisplay
           submission={submission}
           update={(value): void => {
@@ -109,7 +107,7 @@ function renderOptionRow(
 ): React.FunctionComponentElement<{}> {
   return (
     <tr key={option.id} data-option-id={option.id}>
-      <td>{option.value}</td>
+      <td className="w-full">{option.value}</td>
       <td>
         <button
           className="block btn"
@@ -130,13 +128,19 @@ function VotingRoundDisplay(props: VotingRoundProps): React.FunctionComponentEle
 
   return (
     <section data-role="voting-round">
-      <header className="block mb-2 pb-2">
-        Voting for round <span>{round.position + 1}</span>
+      <header className="block mb-2 pb-2 flex items-center">
+        <h1 className="text-gray-500 mr-3">Vote!</h1>
+        <section
+          data-role="prompt"
+          className="py-3 mb-2 text-center bg-white border border-solid w-full rounded border-gray-300"
+        >
+          <h1>{round.prompt || 'Freeform!'}</h1>
+        </section>
       </header>
-      <table>
+      <table className="w-full">
         <thead>
           <tr>
-            <th>Entry</th>
+            <th className="w-full text-left">Entry</th>
             <th></th>
           </tr>
         </thead>

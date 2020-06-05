@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Session } from '@krumpled/krumi/session';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import Icon from '@krumpled/krumi/components/icon';
 
 function Header({ session }: { session: Session }): React.FunctionComponentElement<{}> {
   if (session.user.kind === 'none') {
@@ -14,7 +14,7 @@ function Header({ session }: { session: Session }): React.FunctionComponentEleme
     <header className="flex bg-gray-900 x-gutters py-5 items-center text-gray-100">
       <aside data-role="header-left" className="flex items-center">
         <Link to="/home" className="block mr-5 pr-2">
-          <FontAwesomeIcon icon="home" />
+          <Icon icon="home" />
         </Link>
       </aside>
 

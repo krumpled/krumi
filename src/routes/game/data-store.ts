@@ -56,6 +56,16 @@ export type RoundDetailResponse = {
   entries: Array<RoundEntry>;
 };
 
+export type LobbyDetailResponse = {
+  id: string;
+  name: string;
+};
+
+export async function fetchLobby(lobbyId: string): Promise<Result<LobbyDetailResponse>> {
+  const params = { ids: [lobbyId] };
+  return (await fetch(`/lobbies`, params)) as Result<LobbyDetailResponse>;
+}
+
 export async function fetchGame(gameId: string): Promise<Result<GameDetailResponse>> {
   const params = { ids: [gameId] };
   return (await fetch(`/games`, params)) as Result<GameDetailResponse>;
@@ -69,7 +79,7 @@ export async function fetchRoundDetails(roundId: string): Promise<Result<RoundDe
 export async function createEntry(roundId: string, entry: string): Promise<{ entry: string }> {
   log('creating entry "%s" for round "%s"', entry, roundId);
   const result = await post('/round-entries', { entry, roundId });
-  return resultToPromise(result as Result<{ entry: string }>);
+  return resultToPromise(result as Result<{ entry: string }>).then(() => ({ entry }));
 }
 
 export async function createVote(roundId: string, entryId: string): Promise<{ id: string }> {

@@ -1,7 +1,9 @@
-@import "tailwindcss/base";
-@import "tailwindcss/utilities";
+@import 'tailwindcss/base';
+@import 'tailwindcss/utilities';
 
-html, body, #main {
+html,
+body,
+#main {
   @apply bg-gray-100;
   @apply text-gray-900;
   min-width: 100%;
@@ -9,7 +11,8 @@ html, body, #main {
   position: relative;
 }
 
-html, body {
+html,
+body {
   height: 100%;
 }
 
@@ -37,6 +40,17 @@ a {
   min-height: calc(100% - 40px);
 }
 
+.white-input {
+  @apply block;
+  @apply border;
+  @apply w-full;
+  @apply border-solid;
+  @apply rounded;
+  @apply px-3;
+  @apply py-2;
+  @apply border-gray-500;
+}
+
 .btn {
   @apply block;
   @apply shadow-xs;
@@ -47,7 +61,12 @@ a {
   @apply border;
   @apply border-solid;
   @apply border-gray-500;
-  @apply rounded;
+  @apply rounded-sm;
+}
+
+.boder-light {
+  @apply border-solid;
+  @apply border-gray-400;
 }
 
 .btn:not(:disabled):hover {
@@ -65,7 +84,7 @@ a {
   @apply text-gray-900;
   @apply rounded-sm;
   @apply border;
-  @apply border-gray-100;
+  @apply border-gray-500;
 }
 
 .input-white[disabled] {
@@ -73,15 +92,37 @@ a {
   @apply text-gray-500;
 }
 
+table tbody td,
+table thead th {
+  @apply px-4;
+  @apply py-3;
+}
+
 table tbody td {
-  @apply px-3;
-  @apply py-2;
+  @apply border;
+  @apply border-solid;
+  @apply border-gray-400;
+  background-color: color(theme('colors.gray.100') tint(10%));
+  white-space: nowrap;
+  max-width: 100%;
+}
+table tbody tr:nth-child(even) td {
+  background-color: color(theme('colors.gray.100') tint(80%));
+}
+
+[data-mobile-visible="false"] {
+  @apply hidden;
+}
+
+@screen sm {
+  [data-mobile-visible="false"] {
+    @apply block;
+  }
 }
 
 table thead th {
-  @apply px-3;
-  @apply border-b;
-  @apply border-black;
+  @apply border;
   @apply border-solid;
-  @apply py-2;
+  @apply border-gray-400;
+  @apply bg-white;
 }

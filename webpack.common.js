@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 
 const path = require('path');
-const HTMLPlugin = require('html-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const FaviconPlugin = require('favicons-webpack-plugin');
 const webpack = require('webpack');
 const debug = require('debug');
 const dotenv = require('dotenv');
@@ -29,6 +30,10 @@ module.exports = {
   module: {
     rules: [
       {
+        test: /\.(png|svg|jpg|gif|ico)&/,
+        use: 'file-loader',
+      },
+      {
         test: /\.css$/,
         use: [
           'style-loader',
@@ -38,7 +43,7 @@ module.exports = {
             loader: 'postcss-loader',
             options: {
               ident: 'postcss',
-              plugins: [require('tailwindcss'), require('autoprefixer')],
+              plugins: [require('tailwindcss'), require('autoprefixer'), require('postcss-color-function')],
             },
           },
         ],
@@ -58,8 +63,26 @@ module.exports = {
   },
   plugins: [
     new MiniCssExtractPlugin(),
-    new HTMLPlugin({ template: 'src/index.html' }),
+    new HtmlWebpackPlugin({
+      template: 'src/index.html',
+      favicon: 'src/images/favicon/favicon.ico',
+    }),
     new webpack.DefinePlugin({ KRUMI_CONFIG: JSON.stringify(environment) }),
+    new FaviconPlugin({
+      logo: path.resolve(__dirname, './src/images/favicon/favicon-32x32.png'),
+      inject: true,
+      favicons: {
+        logging: true,
+        icons: {
+          android: true,
+          coast: true,
+          indows: true,
+          appleIcon: true,
+          appleStartup: true,
+          firefox: true,
+        },
+      },
+    }),
   ],
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],

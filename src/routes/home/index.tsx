@@ -2,23 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Redirect, Link } from 'react-router-dom';
 import moment from 'moment';
 import { AuthenticatedRoute } from '@krumpled/krumi/routing-utilities';
-import {
-  mapOption,
-  getAsyncRequestPromise as getPromise,
-  flattenOptions,
-  noop,
-  unwrapOptionOr as unwrapOption,
-  Option,
-  none,
-  AsyncRequest,
-  loaded,
-  notAsked,
-  loading,
-  some,
-} from '@krumpled/krumi/std';
+import * as std from '@krumpled/krumi/std';
 import { Session } from '@krumpled/krumi/session';
 import Loading from '@krumpled/krumi/components/application-loading';
 import ApplicationError from '@krumpled/krumi/components/application-error';
+import Icon from '@krumpled/krumi/components/icon';
 import { LobbyInfo, leaving } from '@krumpled/krumi/routes/home/lobby-row';
 import { loadLobbies, leaveLobby } from '@krumpled/krumi/routes/home/data-store';
 import debug from 'debug';
@@ -27,8 +15,8 @@ const log = debug('krumi:route.home');
 
 const EMPTY_LOBBY_TABLE_ROW = (
   <tr>
-    <td className="py-2 px-3" colSpan={5}>
-      No lobbies found, <Link to="/new-lobby">click here</Link> to create a new one.
+    <td colSpan={5}>
+      <p>You are not a member of any lobbies</p>
     </td>
   </tr>
 );
@@ -38,32 +26,26 @@ export type Props = {
 };
 
 type State = {
-  lobbies: AsyncRequest<Array<LobbyInfo>>;
-  joinLobby: Option<{ value: string; sent: boolean }>;
+  lobbies: std.AsyncRequest<Array<LobbyInfo>>;
+  joinLobby: std.Option<{ value: string; sent: boolean }>;
 };
 
 function init(): State {
-  return { lobbies: notAsked(), joinLobby: none() };
+  return { lobbies: std.notAsked(), joinLobby: std.none() };
 }
 
 function renderLobbyActions(lobby: LobbyInfo, leave: (lobby: LobbyInfo) => void): React.FunctionComponentElement<{}> {
-  switch (lobby.action.kind) {
-    case 'not-asked':
-      return (
-        <div data-role="delete-lobby">
-          <button
-            data-role="leave btn"
-            onClick={(): void => {
-              leave(lobby);
-            }}
-          >
-            Leave
-          </button>
-        </div>
-      );
-    default:
-      return <div></div>;
+  if (lobby.action.kind !== 'not-asked') {
+    return <div></div>;
   }
+
+  return (
+    <div className="inline-block">
+      <button data-role="leave" className="btn" onClick={(): void => leave(lobby)}>
+        <Icon icon="times" />
+      </button>
+    </div>
+  );
 }
 
 function renderLobby(lobby: LobbyInfo, leave: (lobby: LobbyInfo) => void): React.FunctionComponentElement<{}> {
@@ -83,11 +65,11 @@ function renderLobby(lobby: LobbyInfo, leave: (lobby: LobbyInfo) => void): React
 
   return (
     <tr data-role="lobby" data-lobby-id={lobby.id} key={lobby.id}>
-      <td className="py-2 pr-3">{link}</td>
-      <td className="py-2 px-3">{timestamp}</td>
-      <td className="py-2 px-3">{lobby.gameCount}</td>
-      <td className="py-2 px-3">{lobby.memberCount}</td>
-      <td className="py-2 px-3">{actions}</td>
+      <td className="table-cell w-full">{link}</td>
+      <td className="hidden md:table-cell">{timestamp}</td>
+      <td className="hidden md:table-cell">{lobby.gameCount}</td>
+      <td className="hidden md:table-cell">{lobby.memberCount}</td>
+      <td className="table-cell">{actions}</td>
     </tr>
   );
 }
@@ -98,8 +80,8 @@ async function eff(state: State, update: (state: State) => void): Promise<State>
   if (lobbies.kind === 'not-asked') {
     const attempt = loadLobbies();
     log('lobbies not yet requested, loading');
-    update({ ...state, lobbies: loading(attempt) });
-    const result = loaded(await attempt);
+    update({ ...state, lobbies: std.loading(attempt) });
+    const result = std.loaded(await attempt);
     const next = { ...state, lobbies: result };
     log('lobbies loaded');
     update(next);
@@ -109,7 +91,7 @@ async function eff(state: State, update: (state: State) => void): Promise<State>
   // If we're loaded, check to see if we're currently leaving any lobbies.
   if (lobbies.kind === 'loaded') {
     const { data: lobbyList } = lobbies;
-    const promises = flattenOptions(lobbyList.map((lobby) => getPromise(lobby.action)));
+    const promises = std.flattenOptions(lobbyList.map((lobby) => std.getAsyncRequestPromise(lobby.action)));
 
     if (promises.length) {
       await Promise.all([promises]);
@@ -127,13 +109,14 @@ function Home(): React.FunctionComponentElement<{}> {
     const semo = { current: true };
     const innerUpdate = (state: State): void => {
       log('update received, should apply - "%s"', semo.current);
-      return semo.current ? update(state) : noop();
+      return semo.current ? update(state) : std.noop();
     };
+
     eff(state, innerUpdate);
 
     return (): void => {
       log('cleaning up lobby effect, currently "%s"', state.lobbies.kind);
-      return noop((semo.current = state.lobbies.kind === 'not-asked'));
+      return std.noop((semo.current = state.lobbies.kind === 'not-asked'));
     };
   });
 
@@ -149,21 +132,77 @@ function Home(): React.FunctionComponentElement<{}> {
     return <ApplicationError errors={lobbies.errors} />;
   }
 
-  const leave = (lobby: LobbyInfo): void => {
-    log("leaving lobby '%s'", lobby.name);
-    const promise = leaveLobby(lobby);
-    const nextLobbies = lobbies.data.map((existing) => (existing.id === lobby.id ? leaving(lobby, promise) : existing));
-    update({ ...state, lobbies: loaded(nextLobbies) });
-  };
-
-  const list = lobbies.data.length ? lobbies.data.map((lobby) => renderLobby(lobby, leave)) : EMPTY_LOBBY_TABLE_ROW;
-
   if (state.joinLobby.kind === 'some' && state.joinLobby.data.sent) {
     const targetId = state.joinLobby.data.value.trim();
     return <Redirect to={`/join-lobby/${targetId}`} />;
   }
 
-  return <section data-role="home" className="x-gutters y-content y-gutters flex"></section>;
+  const leave = (lobby: LobbyInfo): void => {
+    log("leaving lobby '%s'", lobby.name);
+    const promise = leaveLobby(lobby);
+    const nextLobbies = lobbies.data.map((existing) => (existing.id === lobby.id ? leaving(lobby, promise) : existing));
+    update({ ...state, lobbies: std.loaded(nextLobbies) });
+  };
+
+  const updateLobbyTarget = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    const { value } = event.target;
+    const joinLobby = std.some({ value, sent: false });
+    update({ ...state, joinLobby });
+  };
+
+  const gotoLobby = (): void => {
+    const { joinLobby } = state;
+
+    if (joinLobby.kind === 'none') {
+      return;
+    }
+
+    const next = std.mapOption(joinLobby, (contents) => ({ ...contents, sent: true }));
+    update({ ...state, joinLobby: next });
+  };
+
+  const lobbyId = std.unwrapOptionOr(
+    std.mapOption(state.joinLobby, ({ value }) => value),
+    '',
+  );
+
+  const lobbyRows = lobbies.data.map((lobb) => renderLobby(lobb, leave));
+
+  return (
+    <section data-role="home" className="x-gutters y-content y-gutters">
+      <article className="mb-4 flex text-center w-full flex" data-role="join-lobby">
+        <input
+          type="text"
+          placeholder="Join Lobby"
+          className="white-input"
+          onChange={updateLobbyTarget}
+          value={lobbyId}
+        />
+        <button className="btn block ml-3" onClick={gotoLobby} disabled={!lobbyId}>
+          <Icon icon="hat-cowboy" />
+        </button>
+        <aside className="ml-8 pl-8 block border-l border-light">
+          <Link to="/new-lobby" className="btn">
+            New
+          </Link>
+        </aside>
+      </article>
+      <article className="w-full block">
+        <table className="w-full">
+          <thead>
+            <tr>
+              <th className="text-left">Lobby</th>
+              <th className="text-left hidden md:table-cell">Joined</th>
+              <th className="text-left hidden md:table-cell">Games</th>
+              <th className="text-left hidden md:table-cell">Members</th>
+              <th className="text-left"></th>
+            </tr>
+          </thead>
+          <tbody>{lobbyRows.length ? lobbyRows : EMPTY_LOBBY_TABLE_ROW}</tbody>
+        </table>
+      </article>
+    </section>
+  );
 }
 
 export default AuthenticatedRoute(Home);

@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { AuthenticatedRoute } from '@krumpled/krumi/routing-utilities';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { Session } from '@krumpled/krumi/session';
-import moment from 'moment';
 import { mapOption, loaded, failed, loading, ready } from '@krumpled/krumi/std';
 import ApplicationError from '@krumpled/krumi/components/application-error';
 import Loading from '@krumpled/krumi/components/application-loading';
@@ -16,39 +15,10 @@ import {
   empty as emptySubmission,
   done as finishedSubmission,
 } from '@krumpled/krumi/routes/game/round-submission';
-import { GameDetailRound, createEntry, createVote } from '@krumpled/krumi/routes/game/data-store';
+import { createEntry, createVote } from '@krumpled/krumi/routes/game/data-store';
 import RoundDisplay from '@krumpled/krumi/routes/game/round-display';
 
 const log = debug('krumi:route.game');
-
-function roundIcon({ fulfilled: completed, started }: GameDetailRound): React.FunctionComponentElement<{}> {
-  if (completed) {
-    return <Icon icon="circle" />;
-  }
-
-  if (started && started < new Date().getTime()) {
-    return <Icon icon="dot-circle" />;
-  }
-
-  return <Icon icon="plus" className="opacity-0" />;
-}
-
-function renderRoundSummary(round: GameDetailRound): React.FunctionComponentElement<{}> {
-  const icon = roundIcon(round);
-
-  return (
-    <tr data-round-id={round.id} key={round.id}>
-      <td>
-        <span className="block pr-2 mr-2">{icon}</span>
-      </td>
-      <td>
-        <span className="block">
-          Round <span>{round.position + 1}</span>
-        </span>
-      </td>
-    </tr>
-  );
-}
 
 async function p(state: State, update: (state: State) => void, cancellation: Promise<void>): Promise<void> {
   const preflight = await Promise.race([cancellation, ready('yes', 5000)]);
@@ -156,24 +126,25 @@ function ActiveGame(props: ActiveGameProps): React.FunctionComponentElement<{}> 
 }
 
 function EndedGame(props: { game: GameState['game'] }): React.FunctionComponentElement<{}> {
-  const endedAgo = props.game.ended ? moment(props.game.ended).fromNow() : '';
   const placements = props.game.placements.map((place) => {
     return (
       <tr data-role="placement" data-placement-id={place.id} key={place.id}>
-        <td>{place.place}</td>
-        <td>{place.userName}</td>
+        <td className="text-left">{place.place}</td>
+        <td className="w-full text-left">{place.userName}</td>
       </tr>
     );
   });
 
   return (
     <article data-role="game-results">
-      <h2>Ended {endedAgo}</h2>
+      <header className="py-3 mb-3">
+        <h2 className="text-center bold">Game Over!</h2>
+      </header>
       <table>
         <thead>
           <tr>
-            <th>Place</th>
-            <th>Name</th>
+            <th className="text-left">Place</th>
+            <th className="text-left w-full">Name</th>
           </tr>
         </thead>
         <tbody>{placements}</tbody>
@@ -200,74 +171,61 @@ function Game(props: Props): React.FunctionComponentElement<{}> {
         log('game "%s" in progress, starting update polling', gameId);
         return poll(state, update);
       }
-      case 'not-asked': {
-        log('fetching details');
-        const promise = load(state);
-        const gameState = loading(promise);
+      case 'loading': {
+        const { promise } = details;
 
         promise
           .then((details) => update({ ...state, gameState: loaded(details) }))
           .catch((e) => update({ ...state, gameState: failed([e]) }));
+
+        break;
+      }
+      case 'not-asked': {
+        const promise = load(state);
+        const gameState = loading(promise);
 
         return update({ ...state, gameState });
       }
     }
   });
 
-  switch (state.gameState.kind) {
-    case 'not-asked':
-    case 'loading':
-      log('loading game %s', state.gameId);
-      return (
-        <section className="y-content y-gutters x-gutters">
-          <Loading />
-        </section>
-      );
-    case 'failed':
-      return <ApplicationError errors={state.gameState.errors} />;
-    case 'loaded': {
-      const { data: gameState } = state.gameState;
-      const { lobby, game } = gameState;
-
-      log('game "%s" loaded', game.id);
-      const roundSummaries = game.rounds.map(renderRoundSummary);
-      const updateGameState = (newState: GameState): void => update({ ...state, gameState: loaded(newState) });
-
-      const content =
-        game.ended && game.placements && game.placements.length
-          ? EndedGame({ game })
-          : ActiveGame({ update: updateGameState, gameState });
-
-      return (
-        <section className="y-content y-gutters x-gutters flex">
-          <aside className="pr-5">
-            <header className="pb-2 mb-2">
-              <h2>
-                <b>{gameState.game.name}</b> started <span>{moment(gameState.game.created).fromNow()}</span>
-              </h2>
-            </header>
-            <table>
-              <thead>
-                <tr>
-                  <th></th>
-                  <th>Round No.</th>
-                </tr>
-              </thead>
-              <tbody>{roundSummaries}</tbody>
-            </table>
-          </aside>
-          <main data-role="main-game-contents" className="pl-3 block">
-            <header className="pb-2 mb-2">
-              <Link to={`/lobbies/${lobby.id}`} className="block">
-                Back to Lobby
-              </Link>
-            </header>
-            {content}
-          </main>
-        </section>
-      );
-    }
+  if (state.gameState.kind === 'not-asked' || state.gameState.kind === 'loading') {
+    return (
+      <section className="y-content y-gutters x-gutters">
+        <Loading />
+      </section>
+    );
+  } else if (state.gameState.kind === 'failed') {
+    return <ApplicationError errors={state.gameState.errors} />;
   }
+
+  const { data: gameState } = state.gameState;
+  const { lobby, game } = gameState;
+
+  log('game "%s" loaded', game.id);
+  const updateGameState = (newState: GameState): void => update({ ...state, gameState: loaded(newState) });
+
+  const content =
+    game.ended && game.placements && game.placements.length
+      ? EndedGame({ game })
+      : ActiveGame({ update: updateGameState, gameState });
+
+  return (
+    <section className="y-content y-gutters x-gutters">
+      <header className="mb-3 border-b border-gray-400 border-solid pb-3">
+        <h1>
+          <Link to={`/lobbies/${lobby.id}`}>{lobby.name}</Link>
+          <span className="text-gray-400">
+            &nbsp;
+            <Icon icon="chevron-right" />
+            &nbsp;
+          </span>
+          <b>{game.name}</b>
+        </h1>
+      </header>
+      <section className="">{content}</section>
+    </section>
+  );
 }
 
 export default AuthenticatedRoute(Game);
