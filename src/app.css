@@ -1,0 +1,142 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/utilities';
+
+html,
+body,
+#main {
+  @apply bg-gray-100;
+  @apply text-gray-900;
+  min-width: 100%;
+  min-height: 100%;
+  position: relative;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+a {
+  @apply text-blue-500;
+}
+
+.x-gutters {
+  @apply px-4;
+}
+
+.y-gutters {
+  @apply py-3;
+}
+
+.main-contents {
+  width: 100%;
+  min-height: 100%;
+  position: relative;
+}
+
+.y-content {
+  width: 100%;
+  position: relative;
+  min-height: calc(100% - 40px);
+}
+
+.white-input {
+  @apply block;
+  @apply border;
+  @apply w-full;
+  @apply border-solid;
+  @apply rounded;
+  @apply px-3;
+  @apply py-2;
+  @apply border-gray-500;
+}
+
+.btn {
+  @apply block;
+  @apply shadow-xs;
+  @apply px-3;
+  @apply py-2;
+  @apply bg-white;
+  @apply text-black;
+  @apply border;
+  @apply border-solid;
+  @apply border-gray-500;
+  @apply rounded-sm;
+}
+
+.boder-light {
+  @apply border-solid;
+  @apply border-gray-400;
+}
+
+.btn:not(:disabled):hover {
+  @apply .shadow-sm;
+}
+
+.btn[disabled] {
+  @apply text-gray-500;
+}
+
+.input-white {
+  @apply block;
+  @apply px-3;
+  @apply py-2;
+  @apply text-gray-900;
+  @apply rounded-sm;
+  @apply border;
+  @apply border-gray-300;
+  @apply bg-white;
+  @apply outline-none;
+}
+
+.input-white:focus,
+.input-white:hover {
+  @apply bg-white;
+  @apply border-gray-600;
+}
+
+.input-white[disabled],
+.input-white[disabled]:focus,
+.input-white[disabled]:hover {
+  @apply bg-gray-200;
+  @apply text-gray-500;
+}
+
+.input-white[data-invalid="true"] {
+  @apply border-red-500;
+}
+
+table tbody td,
+table thead th {
+  @apply px-4;
+  @apply py-3;
+}
+
+table tbody td {
+  @apply border;
+  @apply border-solid;
+  @apply border-gray-400;
+  background-color: color(theme('colors.gray.100') tint(10%));
+  white-space: nowrap;
+  max-width: 100%;
+}
+table tbody tr:nth-child(even) td {
+  background-color: color(theme('colors.gray.100') tint(80%));
+}
+
+[data-mobile-visible="false"] {
+  @apply hidden;
+}
+
+@screen sm {
+  [data-mobile-visible="false"] {
+    @apply block;
+  }
+}
+
+table thead th {
+  @apply border;
+  @apply border-solid;
+  @apply border-gray-400;
+  @apply bg-white;
+}

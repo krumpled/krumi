@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "lib": ["es2015", "dom"],
+    "target": "es5",
+    "module": "es6",
+    "strict": true,
+    "esModuleInterop": true,
+    "moduleResolution": "Node",
+    "sourceMap": true,
+    "jsx": "react",
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@krumpled/krumi/*": ["src/*"]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "src/globals.d.ts"
+  ]
+}
