@@ -2,6 +2,7 @@ import React from 'react';
 import { AsyncRequest } from '@krumpled/krumi/std';
 import { RoundCursor as ActiveRound, ActiveRound as EntryRound, VotingRound } from '@krumpled/krumi/routes/game/state';
 import { RoundSubmission as Submission } from '@krumpled/krumi/routes/game/round-submission';
+import Icon from '@krumpled/krumi/components/icon';
 import Loading from '@krumpled/krumi/components/application-loading';
 import ApplicationError from '@krumpled/krumi/components/application-error';
 import debug from 'debug';
@@ -15,6 +16,10 @@ type Props = {
   voteForEntry: (roundId: string, entryId: string) => void;
 };
 
+function validEntryLength(value: string): string {
+  return value.length && value.length < 255 ? value : '';
+}
+
 function SubmissionDisplay(props: {
   submission: Submission;
   update: (value: string) => void;
@@ -23,16 +28,21 @@ function SubmissionDisplay(props: {
   const { submission } = props;
 
   if (submission.kind === 'not-submitted') {
+    const { value } = submission;
+    const validValue = validEntryLength(value);
+
     return (
       <section data-role="submission-form" className="flex items-center w-full">
         <input
           type="text"
           className="input-white mr-3 w-full"
-          value={submission.value}
+          data-invalid={value.length && !validValue.length}
+          value={value}
+          placeholder="He who laughs last didn’t get the joke."
           onChange={(evt): void => props.update((evt.target as HTMLInputElement).value)}
         />
-        <button className="btn" onClick={(): void => props.submit(submission.value)}>
-          Submit
+        <button className="btn" onClick={(): void => props.submit(value)} disabled={!validValue.length}>
+          <Icon icon="paper-plane" />
         </button>
       </section>
     );

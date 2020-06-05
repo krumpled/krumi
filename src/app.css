@@ -21,7 +21,7 @@ a {
 }
 
 .x-gutters {
-  @apply px-8;
+  @apply px-4;
 }
 
 .y-gutters {
@@ -84,12 +84,26 @@ a {
   @apply text-gray-900;
   @apply rounded-sm;
   @apply border;
-  @apply border-gray-500;
+  @apply border-gray-300;
+  @apply bg-white;
+  @apply outline-none;
 }
 
-.input-white[disabled] {
-  @apply bg-gray-100;
+.input-white:focus,
+.input-white:hover {
+  @apply bg-white;
+  @apply border-gray-600;
+}
+
+.input-white[disabled],
+.input-white[disabled]:focus,
+.input-white[disabled]:hover {
+  @apply bg-gray-200;
   @apply text-gray-500;
+}
+
+.input-white[data-invalid="true"] {
+  @apply border-red-500;
 }
 
 table tbody td,

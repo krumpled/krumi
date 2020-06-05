@@ -20,6 +20,7 @@ type LobbyResponse = {
 export async function leaveLobby(lobby: LobbyInfo): Promise<string> {
   log('leaving lobby "%s"', lobby.name);
   await destroy('/lobby-memberships', { lobbyId: lobby.id });
+  await new Promise((resolve) => setTimeout(resolve, 500));
   log('left lobby "%s"', lobby.name);
   return lobby.id;
 }

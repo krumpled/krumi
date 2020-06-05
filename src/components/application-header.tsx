@@ -20,7 +20,9 @@ function Header({ session }: { session: Session }): React.FunctionComponentEleme
 
       <aside data-role="header-right" className="ml-auto flex items-center">
         <p className="mr-3">{name}</p>
-        <Link to="/auth/logout">logout</Link>
+        <Link to="/auth/logout">
+          <Icon icon="sign-out-alt" />
+        </Link>
       </aside>
     </header>
   );

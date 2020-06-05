@@ -63,13 +63,10 @@ module.exports = {
   },
   plugins: [
     new MiniCssExtractPlugin(),
-    new HtmlWebpackPlugin({
-      template: 'src/index.html',
-      favicon: 'src/images/favicon/favicon.ico',
-    }),
+    new HtmlWebpackPlugin({ template: 'src/index.html' }),
     new webpack.DefinePlugin({ KRUMI_CONFIG: JSON.stringify(environment) }),
     new FaviconPlugin({
-      logo: path.resolve(__dirname, './src/images/favicon/favicon-32x32.png'),
+      logo: path.resolve(__dirname, './src/images/favicon/android-chrome-512x512.png'),
       inject: true,
       favicons: {
         logging: true,
