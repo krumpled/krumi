@@ -8,6 +8,6 @@ const merge = require('webpack-merge');
 module.exports = merge(common, {
   mode: 'production',
   output: {
-    path: path.resolve(__dirname, 'dist/target/release'),
+    path: path.resolve(__dirname, 'dist/target/release/krumi'),
   },
 });
