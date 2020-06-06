@@ -15,6 +15,10 @@ log('attempting to load environment from ENV');
 dotenv.config();
 
 const environment = {
+  logging: {
+    url: process.env.KRUMI_LOGGING_URL || '/_logs',
+    enabled: !!(process.env.KRUMI_LOGGING_URL && process.env.KRUMI_LOGGING_URL.length > 0),
+  },
   session: {
     key: process.env.KRUMI_SESSION_KEY || 'krumi:session',
   },
@@ -58,6 +62,10 @@ module.exports = {
         test: /\.tsx?$/,
         use: 'ts-loader',
         exclude: /node_modules/,
+      },
+      {
+        test: /\.worker\.js$/,
+        use: { loader: 'worker-loader' }
       },
     ],
   },

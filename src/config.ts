@@ -1,6 +1,10 @@
 declare const KRUMI_CONFIG: Configuration;
 
 export type Configuration = {
+  logging: {
+    url: string;
+    enabled?: boolean;
+  };
   session: {
     key: string;
   };

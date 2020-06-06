@@ -35,6 +35,7 @@ jobs:
         env:
           KRUMI_KRUMNET_URL: ${{ secrets.KRUMI_KRUMNET_URL }}
           KRUMI_SESSION_KEY: ${{ secrets.KRUMI_SESSION_KEY }}
+          KRUMI_LOGGING_URL: ${{ secrets.KRUMI_LOGGING_URL }}
       - name: Bundle
         run: tar -C dist/target/release -cvzf krumi.tar.gz .
       - name: Create Release
