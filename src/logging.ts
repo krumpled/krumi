@@ -35,6 +35,8 @@ export default function logger(name: string): Logger {
     return sender;
   }
 
+  sender.enabled = true;
+
   sender.log = (log): void => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore
