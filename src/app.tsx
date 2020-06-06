@@ -8,6 +8,7 @@ import ApplicationError from '@krumpled/krumi/components/application-error';
 import { none, fromNullable } from '@krumpled/krumi/std';
 import { failed, loaded, loading, notAsked, AsyncRequest } from '@krumpled/krumi/std/async-request';
 import { Session, load as loadSession } from '@krumpled/krumi/session';
+import { setContextValue } from '@krumpled/krumi/logging';
 import * as Routes from '@krumpled/krumi/routes';
 
 const log = debug('krumi:app');
@@ -61,6 +62,16 @@ function Main(props: { state: State }): React.FunctionComponentElement<{}> {
       case 'not-asked': {
         log('session still uninitialized, initiating request now');
         update({ session: loading(loadSession(none())) });
+        break;
+      }
+      case 'loaded': {
+        const { user } = state.session.data;
+
+        if (user.kind === 'some') {
+          const { id } = user.data;
+          log('session loaded w/ active user "%s"', id);
+          setContextValue('userId', id);
+        }
         break;
       }
       default: {
@@ -124,12 +135,16 @@ function App(): React.FunctionComponentElement<{}> {
   useEffect(() => {
     log('application render, session currently "%s"', state.session.kind);
 
-    switch (state.session.kind) {
-      case 'loading':
-        debug('session in a loading state, queing updates on resolution');
-        state.session.promise
-          .then((sesion) => update({ ...state, session: loaded(sesion) }))
-          .catch((error) => update({ ...state, session: failed([error]) }));
+    if (state.session.kind === 'loading') {
+      log('session in a loading state, queing updates on resolution');
+      state.session.promise
+        .then((sesion) => update({ ...state, session: loaded(sesion) }))
+        .catch((error) => update({ ...state, session: failed([error]) }));
+      return;
+    }
+
+    if (state.session.kind === 'loaded') {
+      log('session loaded, ');
     }
   });
 

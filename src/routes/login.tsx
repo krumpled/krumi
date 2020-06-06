@@ -3,9 +3,9 @@ import { Redirect } from 'react-router-dom';
 import { Session } from '@krumpled/krumi/session';
 import { loginUrl } from '@krumpled/krumi/config';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import debug from 'debug';
+import logger from '@krumpled/krumi/logging';
 
-const log = debug('krumi:routes.login');
+const log = logger('krumi:routes.login');
 
 function Login(props: { session: Session }): React.FunctionComponentElement<{}> {
   const { user } = props.session;
