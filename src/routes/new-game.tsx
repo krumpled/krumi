@@ -5,9 +5,9 @@ import Loading from '@krumpled/krumi/components/application-loading';
 import ApplicationError from '@krumpled/krumi/components/application-error';
 import { createAndPoll } from '@krumpled/krumi/krumnet';
 import { Result, underscoreKeys, AsyncRequest, notAsked, loading, failed, loaded } from '@krumpled/krumi/std';
-import debug from 'debug';
+import logger from '@krumpled/krumi/logging';
 
-const log = debug('krumi:route.new-game');
+const log = logger('krumi:route.new-game');
 
 type State = {
   lobbyId: string;
@@ -31,7 +31,7 @@ function NewGame(): React.FunctionComponentElement<{}> {
   useEffect(() => {
     switch (state.request.kind) {
       case 'not-asked': {
-        debug('new game request no asked, sending now');
+        log('new game request no asked, sending now');
         const promise = createGame(state.lobbyId);
 
         update({ ...state, request: loading(promise) });

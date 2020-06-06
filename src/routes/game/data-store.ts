@@ -37,6 +37,11 @@ export type GameDetailResponse = {
   placements: Array<GameDetailPlacement>;
 };
 
+export type RoundVote = {
+  id: string;
+  userId: string;
+};
+
 export type RoundEntry = {
   id: string;
   entry: string;
@@ -54,6 +59,7 @@ export type RoundDetailResponse = {
   position: number;
   prompt: string;
   entries: Array<RoundEntry>;
+  votes: Array<RoundVote>;
 };
 
 export type LobbyDetailResponse = {
