@@ -9,7 +9,7 @@ import ApplicationError from '@krumpled/krumi/components/application-error';
 import Icon from '@krumpled/krumi/components/icon';
 import { LobbyInfo, leaving } from '@krumpled/krumi/routes/home/lobby-row';
 import { loadLobbies, leaveLobby } from '@krumpled/krumi/routes/home/data-store';
-import debug from 'debug';
+import debug from '@krumpled/krumi/logging';
 
 const log = debug('krumi:route.home');
 
@@ -35,13 +35,16 @@ function init(): State {
 }
 
 function renderLobbyActions(lobby: LobbyInfo, leave: (lobby: LobbyInfo) => void): React.FunctionComponentElement<{}> {
-  if (lobby.action.kind !== 'not-asked') {
-    return <div></div>;
-  }
+  const { action } = lobby;
 
   return (
     <div className="inline-block">
-      <button data-role="leave" className="btn" onClick={(): void => leave(lobby)}>
+      <button
+        data-role="leave"
+        className="btn"
+        disabled={action.kind !== 'not-asked'}
+        onClick={(): void => leave(lobby)}
+      >
         <Icon icon="times" />
       </button>
     </div>
@@ -79,11 +82,9 @@ async function eff(state: State, update: (state: State) => void): Promise<State>
 
   if (lobbies.kind === 'not-asked') {
     const attempt = loadLobbies();
-    log('lobbies not yet requested, loading');
     update({ ...state, lobbies: std.loading(attempt) });
     const result = std.loaded(await attempt);
     const next = { ...state, lobbies: result };
-    log('lobbies loaded');
     update(next);
     return next;
   }
@@ -94,7 +95,8 @@ async function eff(state: State, update: (state: State) => void): Promise<State>
     const promises = std.flattenOptions(lobbyList.map((lobby) => std.getAsyncRequestPromise(lobby.action)));
 
     if (promises.length) {
-      await Promise.all([promises]);
+      log('found "%s" pending lobbies, waiting and reloading page', promises.length);
+      await Promise.all(promises);
       update(init());
     }
   }
@@ -115,7 +117,6 @@ function Home(): React.FunctionComponentElement<{}> {
     eff(state, innerUpdate);
 
     return (): void => {
-      log('cleaning up lobby effect, currently "%s"', state.lobbies.kind);
       return std.noop((semo.current = state.lobbies.kind === 'not-asked'));
     };
   });
@@ -157,6 +158,7 @@ function Home(): React.FunctionComponentElement<{}> {
       return;
     }
 
+    log("joining lobby '%s'", joinLobby.data.value);
     const next = std.mapOption(joinLobby, (contents) => ({ ...contents, sent: true }));
     update({ ...state, joinLobby: next });
   };
