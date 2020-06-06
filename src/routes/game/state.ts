@@ -1,6 +1,7 @@
 import {
   none,
   some,
+  loaded,
   orOption,
   mapOptionAsync,
   unwrapOptionOr,
@@ -110,7 +111,7 @@ export function changedActiveRound({ gameState: current }: State, { gameState: n
   return currentId !== nextId;
 }
 
-async function loadVotingRound(roundDetails: GameDetailRound): Promise<Round> {
+async function loadVotingRound(roundDetails: GameDetailRound, userId: string): Promise<Round> {
   log('fetching round details for voting round "%s"', roundDetails.id);
   const round = await fetchRoundDetails(roundDetails.id);
 
@@ -120,11 +121,13 @@ async function loadVotingRound(roundDetails: GameDetailRound): Promise<Round> {
   }
 
   const options = round.data.entries.map(({ id, entry: value }) => ({ id, value }));
+  const vote = round.data.votes.find((vote) => vote.userId === userId);
+
   return {
     kind: 'voting-round',
     round: round.data,
     options,
-    vote: notAsked(),
+    vote: vote ? loaded(vote) : notAsked(),
   };
 }
 
@@ -167,7 +170,7 @@ export async function load(state: State): Promise<GameState> {
   const maybeActive = findActiveRound(details.rounds);
   const activeRound = await mapOptionAsync(maybeActive, (details) => loadRoundDetails(details, state.userId));
   const maybeVoting = findVotingRound(details.rounds);
-  const votingRound = await mapOptionAsync(maybeVoting, loadVotingRound);
+  const votingRound = await mapOptionAsync(maybeVoting, (votingRound) => loadVotingRound(votingRound, state.userId));
 
   return { lobby: lobby.data, game: details, cursor: orOption(activeRound, votingRound) };
 }

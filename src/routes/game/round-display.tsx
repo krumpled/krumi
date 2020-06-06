@@ -31,6 +31,12 @@ function SubmissionDisplay(props: {
     const { value } = submission;
     const validValue = validEntryLength(value);
 
+    const checkKeypress = (evt: React.KeyboardEvent<HTMLInputElement>): void => {
+      if (evt.keyCode === 13) {
+        props.submit(value);
+      }
+    };
+
     return (
       <section data-role="submission-form" className="flex items-center w-full">
         <input
@@ -40,6 +46,7 @@ function SubmissionDisplay(props: {
           value={value}
           placeholder="He who laughs last didn’t get the joke."
           onChange={(evt): void => props.update((evt.target as HTMLInputElement).value)}
+          onKeyDown={checkKeypress}
         />
         <button className="btn" onClick={(): void => props.submit(value)} disabled={!validValue.length}>
           <Icon icon="paper-plane" />
