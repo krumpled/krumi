@@ -25,7 +25,7 @@
     "react-dom": "^16.13.1",
     "react-router-dom": "^5.2.0",
     "tailwindcss": "^1.4.6",
-    "typescript": "^3.9.3"
+    "typescript": "^3.9.5"
   },
   "alias": {
     "@krumpled/krumi": "./src"
@@ -34,8 +34,8 @@
     "src"
   ],
   "devDependencies": {
-    "@testing-library/jest-dom": "^5.7.0",
-    "@testing-library/react": "^10.0.6",
+    "@testing-library/jest-dom": "^5.9.0",
+    "@testing-library/react": "^10.2.1",
     "@types/debug": "^4.1.5",
     "@types/jest": "^25.2.3",
     "@types/react": "^16.9.35",
@@ -49,7 +49,7 @@
     "eslint-config-prettier": "^6.11.0",
     "eslint-config-standard": "^14.1.1",
     "eslint-loader": "^4.0.2",
-    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-import": "^2.21.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.1.3",
     "eslint-plugin-promise": "^4.2.1",
