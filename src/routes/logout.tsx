@@ -19,6 +19,7 @@ function Logout({
 }: {
   state: State;
   update: (state: State) => void;
+  // eslint-disable-next-line @typescript-eslint/ban-types
 }): React.FunctionComponentElement<{}> {
   const { session } = state;
   log('rendering logout route...');

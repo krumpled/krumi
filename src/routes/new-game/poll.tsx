@@ -42,6 +42,7 @@ async function poll(state: State): Promise<{ id: std.Option<string> }> {
     .then((id) => ({ id }));
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function PollGame(): React.FunctionComponentElement<{}> {
   const { lobbyId, gameId } = useParams();
   const [state, update] = useState(init(gameId, lobbyId));

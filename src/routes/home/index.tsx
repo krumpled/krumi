@@ -35,6 +35,7 @@ function init(): State {
   return { lobbies: std.notAsked(), joinLobby: std.none() };
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function renderLobbyActions(lobby: LobbyInfo, leave: (lobby: LobbyInfo) => void): React.FunctionComponentElement<{}> {
   const { action } = lobby;
 
@@ -52,6 +53,7 @@ function renderLobbyActions(lobby: LobbyInfo, leave: (lobby: LobbyInfo) => void)
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function renderLobby(lobby: LobbyInfo, leave: (lobby: LobbyInfo) => void): React.FunctionComponentElement<{}> {
   const actions = renderLobbyActions(lobby, leave);
 
@@ -105,6 +107,7 @@ async function eff(state: State, update: (state: State) => void): Promise<State>
   return state;
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function Home(): React.FunctionComponentElement<{}> {
   const [state, update] = useState(init());
 

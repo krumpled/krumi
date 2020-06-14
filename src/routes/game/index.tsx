@@ -67,6 +67,7 @@ type ActiveGameProps = {
   update: (state: GameState) => void;
 };
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function ActiveGame(props: ActiveGameProps): React.FunctionComponentElement<{}> {
   const replaceSubmission = (submission: RoundSubmission): void => {
     const { cursor: previous } = props.gameState;
@@ -126,6 +127,7 @@ function ActiveGame(props: ActiveGameProps): React.FunctionComponentElement<{}> 
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function EndedGame(props: { game: GameState['game'] }): React.FunctionComponentElement<{}> {
   const placements = props.game.placements.map((place) => {
     return (
@@ -154,6 +156,7 @@ function EndedGame(props: { game: GameState['game'] }): React.FunctionComponentE
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function Game(props: Props): React.FunctionComponentElement<{}> {
   const [state, update] = useState(init({ session: props.session }));
 

@@ -14,6 +14,7 @@ import AuthCallback from '@krumpled/krumi/auth-callback';
 
 const log = debug('krumi:app');
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function Main(props: { state: State }): React.FunctionComponentElement<{}> {
   const [state, update] = useState(props.state);
 
@@ -89,6 +90,7 @@ function Main(props: { state: State }): React.FunctionComponentElement<{}> {
 
 // The App componet inititalizes it's sesison state to `not-asked`, letting either the `Main` component **or** the
 // `/auth/callback` route `update` to a `loading` state.
+// eslint-disable-next-line @typescript-eslint/ban-types
 function App(): React.FunctionComponentElement<{}> {
   const [state, update] = useState(init());
 

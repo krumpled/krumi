@@ -25,6 +25,7 @@ function createForLobby(lobbyId: string): Promise<std.Result<{ id: string }>> {
   return post('/games', payload) as Promise<std.Result<{ id: string }>>;
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function NewGame(): React.FunctionComponentElement<{}> {
   const [state, update] = useState(init());
 

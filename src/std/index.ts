@@ -69,6 +69,8 @@ export function camelizeKeys(input: any): any {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return { ...acc, [camelized]: value } as any;
+
+    // eslint-disable-next-line @typescript-eslint/ban-types
   }, {} as object);
 }
 
@@ -93,8 +95,9 @@ export function underscoreKeys(input: any): any {
 
   return Object.keys(input).reduce((acc, k) => {
     const underscored = separateWords(k).toLowerCase();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/ban-types
     return { ...acc, [underscored]: (input as any)[k] } as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/ban-types
   }, {} as object);
 }
 

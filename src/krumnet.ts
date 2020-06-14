@@ -22,10 +22,12 @@ export function setToken(token: string | null): void {
   authorization.token = token;
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function authorizationHeaders(): object {
   return { Authorization: authorization.token };
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 export async function destroy(path: string, payload?: object): Promise<Result<object>> {
   const uri = `${config.krumnet.url}${path}`;
   log('DELETE to "%s"', uri);
@@ -42,6 +44,7 @@ export async function destroy(path: string, payload?: object): Promise<Result<ob
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 export async function fetch(path: string, params?: object): Promise<Result<object>> {
   const uri = `${config.krumnet.url}${path}`;
   log('fetching "%s"', uri);
@@ -58,6 +61,7 @@ export async function fetch(path: string, params?: object): Promise<Result<objec
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 export async function post<T>(path: string, data?: T): Promise<Result<object>> {
   const uri = `${config.krumnet.url}${path}`;
   const headers = { ...authorizationHeaders() };

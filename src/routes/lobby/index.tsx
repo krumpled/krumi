@@ -61,6 +61,7 @@ function init(): State {
   return { id, data: std.notAsked() };
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function renderGame(game: LobbyGame, lobbyId: string): React.FunctionComponentElement<{}> {
   const created = moment(game.created);
   log('rendering game created on "%s"', created.fromNow());
@@ -81,6 +82,7 @@ function renderGame(game: LobbyGame, lobbyId: string): React.FunctionComponentEl
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function renderMember(member: LobbyMember): React.FunctionComponentElement<{}> {
   const joinedAt = member.joinedAt ? moment(member.joinedAt).fromNow() : '';
   return (
@@ -91,6 +93,7 @@ function renderMember(member: LobbyMember): React.FunctionComponentElement<{}> {
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function toggleDetails(viewing: string): [string, React.FunctionComponentElement<{}>] {
   const viewingUsers = viewing === 'users';
   const mode = viewingUsers ? 'games' : 'users';
@@ -100,6 +103,7 @@ function toggleDetails(viewing: string): [string, React.FunctionComponentElement
   return [destination, icon];
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function Lobby(): React.FunctionComponentElement<{}> {
   const { search } = useLocation();
   const mode = std.findQueryValue('mode', search || '');

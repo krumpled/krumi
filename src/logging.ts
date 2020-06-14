@@ -1,7 +1,7 @@
 import config from '@krumpled/krumi/config';
 import debug from 'debug';
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import Worker from '@krumpled/krumi/logging.worker';
 
@@ -10,7 +10,7 @@ const context: Record<string, string> = {};
 const inner = debug('krumi:logging');
 const enabled = config.logging.enabled === true;
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 const worker = enabled ? new Worker() : null;
 
@@ -31,14 +31,14 @@ export default function logger(name: string): Logger {
     return sender;
   }
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   sender.useColors = false;
 
   sender.enabled = true;
 
   sender.log = (log): void => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     worker.postMessage({ log, context });
   };

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Session } from '@krumpled/krumi/session';
 import Icon from '@krumpled/krumi/components/icon';
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function Header({ session }: { session: Session }): React.FunctionComponentElement<{}> {
   if (session.user.kind === 'none') {
     return (

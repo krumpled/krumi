@@ -9,6 +9,7 @@ const log = debug('krumi:auth-callback');
 
 // The AuthCallback route handles pulling the token out of the url query params and attempting to load the session
 // using it, immediately calling the update of our `Main` state and rendering a redirect back to home.
+// eslint-disable-next-line @typescript-eslint/ban-types
 function AuthCallback(props: { update: (state: State) => void }): React.FunctionComponentElement<{}> {
   const { search } = useLocation();
 
