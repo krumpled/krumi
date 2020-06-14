@@ -26,14 +26,14 @@ export default function logger(name: string): Logger {
   inner('creating "%s" logger', name);
   const sender = debug(name);
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-  // @ts-ignore
-  sender.useColors = false;
-
   if (!worker) {
     inner('logging not enabled, skipping w/o worker');
     return sender;
   }
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+  // @ts-ignore
+  sender.useColors = false;
 
   sender.enabled = true;
 

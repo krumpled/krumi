@@ -49,6 +49,9 @@ function Main(props: { state: State }): React.FunctionComponentElement<{}> {
     <section data-role="loaded-session" className="main-contents">
       <Header key="header" session={session.data} />
       <Switch>
+        <Route extact path="/loading">
+          <Loading />
+        </Route>
         <Route extact path="/login">
           <Routes.Login session={session.data} />
         </Route>
@@ -63,6 +66,9 @@ function Main(props: { state: State }): React.FunctionComponentElement<{}> {
         </Route>
         <Route extact path="/lobbies/:id/new-game">
           <Routes.NewGame session={session.data} />
+        </Route>
+        <Route extact path="/lobbies/:lobbyId/poll-game/:gameId">
+          <Routes.PollGame session={session.data} />
         </Route>
         <Route extact path="/lobbies/:lobbyId/games/:gameId">
           <Routes.Game session={session.data} />

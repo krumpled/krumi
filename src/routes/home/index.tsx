@@ -9,6 +9,7 @@ import ApplicationError from '@krumpled/krumi/components/application-error';
 import Icon from '@krumpled/krumi/components/icon';
 import { LobbyInfo, leaving } from '@krumpled/krumi/routes/home/lobby-row';
 import { loadLobbies, leaveLobby } from '@krumpled/krumi/routes/home/data-store';
+import shortenName from '@krumpled/krumi/shorten-name';
 import debug from '@krumpled/krumi/logging';
 
 const log = debug('krumi:route.home');
@@ -56,7 +57,7 @@ function renderLobby(lobby: LobbyInfo, leave: (lobby: LobbyInfo) => void): React
 
   const link = (
     <Link to={`/lobbies/${lobby.id}`} className="block pr-2">
-      {lobby.name}
+      {shortenName(lobby.name)}
     </Link>
   );
 

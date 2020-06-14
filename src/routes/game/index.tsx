@@ -17,6 +17,7 @@ import {
 } from '@krumpled/krumi/routes/game/round-submission';
 import { createEntry, createVote } from '@krumpled/krumi/routes/game/data-store';
 import RoundDisplay from '@krumpled/krumi/routes/game/round-display';
+import shortenName from '@krumpled/krumi/shorten-name';
 
 const log = debug('krumi:route.game');
 
@@ -214,13 +215,13 @@ function Game(props: Props): React.FunctionComponentElement<{}> {
     <section className="y-content y-gutters x-gutters">
       <header className="mb-3 border-b border-gray-400 border-solid pb-3">
         <h1>
-          <Link to={`/lobbies/${lobby.id}`}>{lobby.name}</Link>
+          <Link to={`/lobbies/${lobby.id}`}>{shortenName(lobby.name)}</Link>
           <span className="text-gray-400">
             &nbsp;
             <Icon icon="chevron-right" />
             &nbsp;
           </span>
-          <b>{game.name}</b>
+          <b>{shortenName(game.name)}</b>
         </h1>
       </header>
       <section className="">{content}</section>

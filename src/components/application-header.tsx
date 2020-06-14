@@ -5,7 +5,15 @@ import Icon from '@krumpled/krumi/components/icon';
 
 function Header({ session }: { session: Session }): React.FunctionComponentElement<{}> {
   if (session.user.kind === 'none') {
-    return <header className="flex bg-gray-900 x-gutters py-5 items-center"></header>;
+    return (
+      <header className="flex bg-gray-900 x-gutters py-5 items-center">
+        <aside className="ml-auto">
+          <a href="https://github.com/krumpled/krumnet" className="block ml-2">
+            <Icon icon={['fab', 'github']} />
+          </a>
+        </aside>
+      </header>
+    );
   }
 
   const { name } = session.user.data;
@@ -23,6 +31,9 @@ function Header({ session }: { session: Session }): React.FunctionComponentEleme
         <Link to="/auth/logout">
           <Icon icon="sign-out-alt" />
         </Link>
+        <a href="https://github.com/krumpled/krumnet" className="block ml-2">
+          <Icon icon={['fab', 'github']} />
+        </a>
       </aside>
     </header>
   );

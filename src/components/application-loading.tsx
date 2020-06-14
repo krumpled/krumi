@@ -2,8 +2,13 @@ import React from 'react';
 
 function ApplicationLoading(): React.FunctionComponentElement<{}> {
   return (
-    <section data-role="application-loading" className="py-10 text-center">
-      <p className="my-10">Loading, please wait...</p>
+    <section data-role="application-loading" className="py-10 h-20 box-content text-center relative">
+      <div className="spinner">
+        <div className="blob top"></div>
+        <div className="blob bottom"></div>
+        <div className="blob left"></div>
+        <div className="blob move-blob"></div>
+      </div>
     </section>
   );
 }
