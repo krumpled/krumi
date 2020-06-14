@@ -14,6 +14,7 @@ import AuthCallback from '@krumpled/krumi/auth-callback';
 
 const log = debug('krumi:app');
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function Main(props: { state: State }): React.FunctionComponentElement<{}> {
   const [state, update] = useState(props.state);
 
@@ -49,6 +50,9 @@ function Main(props: { state: State }): React.FunctionComponentElement<{}> {
     <section data-role="loaded-session" className="main-contents">
       <Header key="header" session={session.data} />
       <Switch>
+        <Route extact path="/loading">
+          <Loading />
+        </Route>
         <Route extact path="/login">
           <Routes.Login session={session.data} />
         </Route>
@@ -63,6 +67,9 @@ function Main(props: { state: State }): React.FunctionComponentElement<{}> {
         </Route>
         <Route extact path="/lobbies/:id/new-game">
           <Routes.NewGame session={session.data} />
+        </Route>
+        <Route extact path="/lobbies/:lobbyId/poll-game/:gameId">
+          <Routes.PollGame session={session.data} />
         </Route>
         <Route extact path="/lobbies/:lobbyId/games/:gameId">
           <Routes.Game session={session.data} />
@@ -83,6 +90,7 @@ function Main(props: { state: State }): React.FunctionComponentElement<{}> {
 
 // The App componet inititalizes it's sesison state to `not-asked`, letting either the `Main` component **or** the
 // `/auth/callback` route `update` to a `loading` state.
+// eslint-disable-next-line @typescript-eslint/ban-types
 function App(): React.FunctionComponentElement<{}> {
   const [state, update] = useState(init());
 

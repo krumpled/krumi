@@ -1,7 +1,7 @@
 import axios from 'axios';
 import debug from 'debug';
 import config from '@krumpled/krumi/config';
-import { noop, Result, ok, err, camelizeKeys, underscoreKeys } from '@krumpled/krumi/std';
+import { Result, ok, err, camelizeKeys, underscoreKeys } from '@krumpled/krumi/std';
 
 const log = debug('krumi:krumnet');
 
@@ -22,10 +22,12 @@ export function setToken(token: string | null): void {
   authorization.token = token;
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function authorizationHeaders(): object {
   return { Authorization: authorization.token };
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 export async function destroy(path: string, payload?: object): Promise<Result<object>> {
   const uri = `${config.krumnet.url}${path}`;
   log('DELETE to "%s"', uri);
@@ -42,6 +44,7 @@ export async function destroy(path: string, payload?: object): Promise<Result<ob
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 export async function fetch(path: string, params?: object): Promise<Result<object>> {
   const uri = `${config.krumnet.url}${path}`;
   log('fetching "%s"', uri);
@@ -58,6 +61,7 @@ export async function fetch(path: string, params?: object): Promise<Result<objec
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 export async function post<T>(path: string, data?: T): Promise<Result<object>> {
   const uri = `${config.krumnet.url}${path}`;
   const headers = { ...authorizationHeaders() };
@@ -72,59 +76,7 @@ export async function post<T>(path: string, data?: T): Promise<Result<object>> {
       headers,
     });
     return ok(camelizeKeys(response));
-  } catch (e) {
-    return err([e]);
+  } catch (error) {
+    return err([error]);
   }
-}
-
-export type Cancellation = { kind: 'cancel' };
-export type Semo = Promise<Cancellation>;
-
-export function newSemo(): [Semo, () => void] {
-  let res = noop;
-
-  const semo = new Promise<Cancellation>((resolve) => {
-    res = (): void => {
-      resolve({ kind: 'cancel' });
-    };
-  });
-
-  return [semo, res];
-}
-
-export async function createAndPoll<T>(path: string, data?: T, semo?: Semo): Promise<Result<{ id: string }>> {
-  const job = (await post(path, data)) as Result<{ id: string }>;
-
-  if (job.kind === 'err') {
-    return job;
-  }
-
-  let count = 0;
-  const query = { id: job.data.id };
-
-  while (++count < 1000) {
-    const request = fetch('/jobs', query) as Promise<Result<QueuedJob>>;
-    const out = await (semo ? Promise.race([semo, request]) : request);
-
-    if (out && out.kind === 'cancel') {
-      return Promise.reject(new Error('cancelled'));
-    }
-
-    const job: Result<QueuedJob> = out;
-
-    if (job.kind === 'err') {
-      return job;
-    }
-
-    if (job.data.result) {
-      const { id } = job.data.result.data.data;
-      log('job has finished w/ result %o', id);
-      return ok({ id });
-    }
-
-    log('lobby "%s" still provisioning, delay + continue', job.data.id);
-    await new Promise((resolve) => setTimeout(resolve, 1000 + count * 100));
-  }
-
-  return err([new Error(`job ${job.data.id} not finished after ${count} attempts`)]);
 }

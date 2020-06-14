@@ -8,6 +8,7 @@ export type Props = {
   errors?: Array<Error>;
 };
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function ApplicationError(props: Props): React.FunctionComponentElement<{}> {
   log('application-error - %o', props.errors);
   return (

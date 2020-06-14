@@ -7,6 +7,7 @@ import ApplicationError from '@krumpled/krumi/components/application-error';
 import moment from 'moment';
 import { fetch } from '@krumpled/krumi/krumnet';
 import * as std from '@krumpled/krumi/std';
+import shortenName from '@krumpled/krumi/shorten-name';
 import debug from 'debug';
 
 const log = debug('krumi:route.lobby');
@@ -60,6 +61,7 @@ function init(): State {
   return { id, data: std.notAsked() };
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function renderGame(game: LobbyGame, lobbyId: string): React.FunctionComponentElement<{}> {
   const created = moment(game.created);
   log('rendering game created on "%s"', created.fromNow());
@@ -67,7 +69,7 @@ function renderGame(game: LobbyGame, lobbyId: string): React.FunctionComponentEl
     <tr data-role="game" className="text-left" key={game.id} data-rounds-remaining={game.roundsRemaining}>
       <td>
         <Link to={`/lobbies/${lobbyId}/games/${game.id}`} className="block pr-2">
-          {game.name}
+          {shortenName(game.name)}
         </Link>
       </td>
       <td>
@@ -80,6 +82,7 @@ function renderGame(game: LobbyGame, lobbyId: string): React.FunctionComponentEl
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function renderMember(member: LobbyMember): React.FunctionComponentElement<{}> {
   const joinedAt = member.joinedAt ? moment(member.joinedAt).fromNow() : '';
   return (
@@ -90,6 +93,7 @@ function renderMember(member: LobbyMember): React.FunctionComponentElement<{}> {
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function toggleDetails(viewing: string): [string, React.FunctionComponentElement<{}>] {
   const viewingUsers = viewing === 'users';
   const mode = viewingUsers ? 'games' : 'users';
@@ -99,6 +103,7 @@ function toggleDetails(viewing: string): [string, React.FunctionComponentElement
   return [destination, icon];
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function Lobby(): React.FunctionComponentElement<{}> {
   const { search } = useLocation();
   const mode = std.findQueryValue('mode', search || '');
@@ -148,7 +153,7 @@ function Lobby(): React.FunctionComponentElement<{}> {
     <section className="y-content x-gutters y-gutters">
       <header className="flex border-b border-gray-400 border-solid pb-3 mb-3 items-center">
         <h1>
-          <b>{lobby.name}</b>
+          <b>{shortenName(lobby.name)}</b>
         </h1>
         <div className="ml-auto flex items-center">
           <Link to={{ search: nextModeQuery, pathname: `/lobbies/${lobby.id}` }} className="btn mr-2 sm:hidden">
@@ -159,7 +164,7 @@ function Lobby(): React.FunctionComponentElement<{}> {
           </Link>
         </div>
       </header>
-      <section data-role="tables" className="flex items-center">
+      <section data-role="tables" className="flex items-start">
         <article data-role="user-table" className="w-full sm:w-6/12 sm:mr-2" data-mobile-visible={viewing === 'users'}>
           <table className="w-full">
             <thead>

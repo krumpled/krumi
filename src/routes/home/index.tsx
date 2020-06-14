@@ -9,6 +9,7 @@ import ApplicationError from '@krumpled/krumi/components/application-error';
 import Icon from '@krumpled/krumi/components/icon';
 import { LobbyInfo, leaving } from '@krumpled/krumi/routes/home/lobby-row';
 import { loadLobbies, leaveLobby } from '@krumpled/krumi/routes/home/data-store';
+import shortenName from '@krumpled/krumi/shorten-name';
 import debug from '@krumpled/krumi/logging';
 
 const log = debug('krumi:route.home');
@@ -34,6 +35,7 @@ function init(): State {
   return { lobbies: std.notAsked(), joinLobby: std.none() };
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function renderLobbyActions(lobby: LobbyInfo, leave: (lobby: LobbyInfo) => void): React.FunctionComponentElement<{}> {
   const { action } = lobby;
 
@@ -51,12 +53,13 @@ function renderLobbyActions(lobby: LobbyInfo, leave: (lobby: LobbyInfo) => void)
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function renderLobby(lobby: LobbyInfo, leave: (lobby: LobbyInfo) => void): React.FunctionComponentElement<{}> {
   const actions = renderLobbyActions(lobby, leave);
 
   const link = (
     <Link to={`/lobbies/${lobby.id}`} className="block pr-2">
-      {lobby.name}
+      {shortenName(lobby.name)}
     </Link>
   );
 
@@ -104,6 +107,7 @@ async function eff(state: State, update: (state: State) => void): Promise<State>
   return state;
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function Home(): React.FunctionComponentElement<{}> {
   const [state, update] = useState(init());
 

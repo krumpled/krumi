@@ -17,6 +17,7 @@ import {
 } from '@krumpled/krumi/routes/game/round-submission';
 import { createEntry, createVote } from '@krumpled/krumi/routes/game/data-store';
 import RoundDisplay from '@krumpled/krumi/routes/game/round-display';
+import shortenName from '@krumpled/krumi/shorten-name';
 
 const log = debug('krumi:route.game');
 
@@ -66,6 +67,7 @@ type ActiveGameProps = {
   update: (state: GameState) => void;
 };
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function ActiveGame(props: ActiveGameProps): React.FunctionComponentElement<{}> {
   const replaceSubmission = (submission: RoundSubmission): void => {
     const { cursor: previous } = props.gameState;
@@ -125,6 +127,7 @@ function ActiveGame(props: ActiveGameProps): React.FunctionComponentElement<{}> 
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function EndedGame(props: { game: GameState['game'] }): React.FunctionComponentElement<{}> {
   const placements = props.game.placements.map((place) => {
     return (
@@ -153,6 +156,7 @@ function EndedGame(props: { game: GameState['game'] }): React.FunctionComponentE
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function Game(props: Props): React.FunctionComponentElement<{}> {
   const [state, update] = useState(init({ session: props.session }));
 
@@ -214,13 +218,13 @@ function Game(props: Props): React.FunctionComponentElement<{}> {
     <section className="y-content y-gutters x-gutters">
       <header className="mb-3 border-b border-gray-400 border-solid pb-3">
         <h1>
-          <Link to={`/lobbies/${lobby.id}`}>{lobby.name}</Link>
+          <Link to={`/lobbies/${lobby.id}`}>{shortenName(lobby.name)}</Link>
           <span className="text-gray-400">
             &nbsp;
             <Icon icon="chevron-right" />
             &nbsp;
           </span>
-          <b>{game.name}</b>
+          <b>{shortenName(game.name)}</b>
         </h1>
       </header>
       <section className="">{content}</section>

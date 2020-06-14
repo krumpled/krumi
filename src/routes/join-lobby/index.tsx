@@ -38,6 +38,7 @@ async function createMembership(lobbyId: string): Promise<{ id: string }> {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function JoinLobby(): React.FunctionComponentElement<{}> {
   const [state, update] = useState(init());
   const { id } = useParams();

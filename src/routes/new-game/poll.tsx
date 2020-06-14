@@ -1,22 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Redirect, useParams } from 'react-router-dom';
-import { AuthenticatedRoute } from '@krumpled/krumi/routing-utilities';
 import Loading from '@krumpled/krumi/components/application-loading';
 import ApplicationError from '@krumpled/krumi/components/application-error';
 import * as std from '@krumpled/krumi/std';
 import { fetch } from '@krumpled/krumi/krumnet';
-import debug from 'debug';
+import { AuthenticatedRoute } from '@krumpled/krumi/routing-utilities';
+import logger from '@krumpled/krumi/logging';
 
-const log = debug('krumi:routes.poll-lobby');
+const log = logger('krumi:route.new-game.poll');
 
 type State = {
-  jobId: string;
+  lobbyId: string;
+  gameId: string;
   result: std.AsyncRequest<{ id: std.Option<string> }>;
 };
 
-function init(): State {
-  const { id } = useParams();
-  return { jobId: id, result: std.notAsked() };
+function init(gameId: string, lobbyId: string): State {
+  return { gameId, lobbyId, result: std.notAsked() };
 }
 
 type JobResult = {
@@ -33,11 +33,8 @@ type PolledJob = {
 async function poll(state: State): Promise<{ id: std.Option<string> }> {
   await new Promise((resolve) => setTimeout(resolve, 2000));
 
-  if (state.jobId === 'hang') {
-    return { id: std.none() };
-  }
+  const result = (await fetch('/jobs', { id: state.gameId })) as std.Result<PolledJob>;
 
-  const result = (await fetch('/jobs', { id: state.jobId })) as std.Result<PolledJob>;
   return std
     .resultToPromise(result)
     .then((polledJob) => std.fromNullable(polledJob.result))
@@ -46,8 +43,9 @@ async function poll(state: State): Promise<{ id: std.Option<string> }> {
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-function PollLobby(): React.FunctionComponentElement<{}> {
-  const [state, update] = useState(init());
+function PollGame(): React.FunctionComponentElement<{}> {
+  const { lobbyId, gameId } = useParams();
+  const [state, update] = useState(init(gameId, lobbyId));
 
   useEffect(() => {
     const semo = { done: false };
@@ -61,9 +59,9 @@ function PollLobby(): React.FunctionComponentElement<{}> {
       return;
     }
 
-    log('polling attempt sent, adding listeners');
+    const { promise: pollPromise } = state.result;
 
-    state.result.promise
+    pollPromise
       .then((pollResult) => {
         const next = pollResult.id.kind === 'none' ? std.loading(poll(state)) : std.loaded({ id: pollResult.id });
         log('poll result done - semo "%s"', semo.done);
@@ -74,18 +72,17 @@ function PollLobby(): React.FunctionComponentElement<{}> {
     return (): void => std.noop((semo.done = true));
   });
 
-  if (state.result.kind === 'failed') {
+  if (state.result.kind === 'loading' || state.result.kind === 'not-asked') {
+    return <Loading />;
+  } else if (state.result.kind === 'failed') {
     return <ApplicationError errors={state.result.errors} />;
-  } else if (state.result.kind !== 'loaded') {
-    return <Loading data-state={state.jobId} />;
   }
 
-  const destination = std.unwrapOptionOr(
-    std.mapOption(state.result.data.id, (id) => `/lobbies/${id}`),
-    '/home',
-  );
+  if (state.result.data.id.kind === 'none') {
+    return <Redirect to="/home" />;
+  }
 
-  return <Redirect to={destination} />;
+  return <Redirect to={`/lobbies/${state.lobbyId}/games/${state.result.data.id.data}`} />;
 }
 
-export default AuthenticatedRoute(PollLobby);
+export default AuthenticatedRoute(PollGame);

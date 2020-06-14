@@ -7,6 +7,7 @@ import logger from '@krumpled/krumi/logging';
 
 const log = logger('krumi:routes.login');
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function Login(props: { session: Session }): React.FunctionComponentElement<{}> {
   const { user } = props.session;
   log('rendering login route');

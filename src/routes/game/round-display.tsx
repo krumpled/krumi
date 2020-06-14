@@ -24,6 +24,7 @@ function SubmissionDisplay(props: {
   submission: Submission;
   update: (value: string) => void;
   submit: (value: string) => void;
+  // eslint-disable-next-line @typescript-eslint/ban-types
 }): React.FunctionComponentElement<{}> {
   const { submission } = props;
 
@@ -83,6 +84,7 @@ type EntryRoundDisplayProps = {
   cursor: EntryRound;
 } & Omit<Props, 'round'>;
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function EntryRoundDisplay(props: EntryRoundDisplayProps): React.FunctionComponentElement<{}> {
   const { round: details, submission } = props.cursor;
 
@@ -121,6 +123,7 @@ function renderOptionRow(
   option: { id: string; value: string },
   activeVote: AsyncRequest<{ id: string }>,
   voteForEntry: (id: string) => void,
+  // eslint-disable-next-line @typescript-eslint/ban-types
 ): React.FunctionComponentElement<{}> {
   return (
     <tr key={option.id} data-option-id={option.id}>
@@ -138,6 +141,7 @@ function renderOptionRow(
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function VotingRoundDisplay(props: VotingRoundProps): React.FunctionComponentElement<{}> {
   const { round, options, vote } = props.cursor;
   const voteForEntry = (entryId: string): void => props.voteForEntry(round.id, entryId);
@@ -167,6 +171,7 @@ function VotingRoundDisplay(props: VotingRoundProps): React.FunctionComponentEle
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function RoundDisplay(props: Props): React.FunctionComponentElement<{}> {
   const { round } = props;
 
