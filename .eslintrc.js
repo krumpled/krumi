@@ -1,3 +1,4 @@
+/* eslint-env node */
 module.exports = {
   settings: {
     react: {
@@ -8,12 +9,7 @@ module.exports = {
     browser: true,
     es6: true,
   },
-  extends: [
-    'standard',
-    'plugin:@typescript-eslint/recommended',
-    'plugin:react/recommended',
-    'plugin:prettier/recommended',
-  ],
+  extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:react/recommended'],
   globals: {
     Atomics: 'readonly',
     SharedArrayBuffer: 'readonly',
@@ -23,5 +19,5 @@ module.exports = {
     ecmaVersion: 2018,
     sourceType: 'module',
   },
-  plugins: ['@typescript-eslint', 'prettier'],
+  plugins: ['@typescript-eslint'],
 };
