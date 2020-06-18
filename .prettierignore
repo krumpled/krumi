@@ -1,6 +1,4 @@
 dist
 node_modules
-.github
-.git:xa
-exit
-cl
+.github/
+.git/
