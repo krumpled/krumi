@@ -102,7 +102,7 @@ a {
   @apply text-gray-500;
 }
 
-.input-white[data-invalid="true"] {
+.input-white[data-invalid='true'] {
   @apply border-red-500;
 }
 
@@ -124,12 +124,12 @@ table tbody tr:nth-child(even) td {
   background-color: color(theme('colors.gray.100') tint(80%));
 }
 
-[data-mobile-visible="false"] {
+[data-mobile-visible='false'] {
   @apply hidden;
 }
 
 @screen sm {
-  [data-mobile-visible="false"] {
+  [data-mobile-visible='false'] {
     @apply block;
   }
 }
@@ -187,7 +187,9 @@ table thead th {
 }
 
 @keyframes blob-bottom {
-  25%, 50%, 75% {
+  25%,
+  50%,
+  75% {
     top: 50%;
     left: 100%;
   }
@@ -202,7 +204,8 @@ table thead th {
     top: 50%;
     left: 0;
   }
-  50%, 100% {
+  50%,
+  100% {
     top: 100%;
     left: 50%;
   }
@@ -213,14 +216,16 @@ table thead th {
     top: 0;
     left: 50%;
   }
-  75%, 100% {
+  75%,
+  100% {
     top: 50%;
     left: 0;
   }
 }
 
 @keyframes blob-spinner-mover {
-  0%, 100% {
+  0%,
+  100% {
     top: 0;
     left: 50%;
   }
@@ -237,4 +242,3 @@ table thead th {
     left: 0;
   }
 }
-

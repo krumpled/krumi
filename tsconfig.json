@@ -15,8 +15,5 @@
       "@krumpled/krumi/*": ["src/*"]
     }
   },
-  "include": [
-    "src/**/*",
-    "src/globals.d.ts"
-  ]
+  "include": ["src/**/*", "src/globals.d.ts"]
 }

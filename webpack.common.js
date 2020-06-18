@@ -1,9 +1,9 @@
+/* eslint-env node */
 /* eslint-disable @typescript-eslint/no-var-requires */
 
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const FaviconPlugin = require('favicons-webpack-plugin');
 const webpack = require('webpack');
 const debug = require('debug');
 const dotenv = require('dotenv');
@@ -73,21 +73,6 @@ module.exports = {
     new MiniCssExtractPlugin(),
     new HtmlWebpackPlugin({ template: 'src/index.html' }),
     new webpack.DefinePlugin({ KRUMI_CONFIG: JSON.stringify(environment) }),
-    new FaviconPlugin({
-      logo: path.resolve(__dirname, './src/images/favicon/android-chrome-512x512.png'),
-      inject: true,
-      favicons: {
-        logging: true,
-        icons: {
-          android: true,
-          coast: true,
-          indows: true,
-          appleIcon: true,
-          appleStartup: true,
-          firefox: true,
-        },
-      },
-    }),
   ],
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
