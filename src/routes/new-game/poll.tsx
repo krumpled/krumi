@@ -63,9 +63,13 @@ function PollGame(): React.FunctionComponentElement<{}> {
 
     pollPromise
       .then((pollResult) => {
+        if (semo.done) {
+          return std.noop();
+        }
+
         const next = pollResult.id.kind === 'none' ? std.loading(poll(state)) : std.loaded({ id: pollResult.id });
         log('poll result done - semo "%s"', semo.done);
-        return semo.done ? std.noop() : update({ ...state, result: next });
+        return update({ ...state, result: next });
       })
       .catch((error) => update({ ...state, result: std.failed([error]) }));
 

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { AuthenticatedRoute } from '@krumpled/krumi/routing-utilities';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { Session } from '@krumpled/krumi/session';
-import { mapOption, loaded, failed, loading, ready } from '@krumpled/krumi/std';
+import * as std from '@krumpled/krumi/std';
 import ApplicationError from '@krumpled/krumi/components/application-error';
 import Loading from '@krumpled/krumi/components/application-loading';
 import debug from 'debug';
@@ -20,9 +20,10 @@ import RoundDisplay from '@krumpled/krumi/routes/game/round-display';
 import shortenName from '@krumpled/krumi/shorten-name';
 
 const log = debug('krumi:route.game');
+const POLL_DELAY = 2000;
 
 async function p(state: State, update: (state: State) => void, cancellation: Promise<void>): Promise<void> {
-  const preflight = await Promise.race([cancellation, ready('yes', 5000)]);
+  const preflight = await Promise.race([cancellation, std.ready('yes', POLL_DELAY)]);
 
   if (preflight !== 'yes') {
     log('cancellation promise resolved before slight preflight, skipping');
@@ -39,7 +40,7 @@ async function p(state: State, update: (state: State) => void, cancellation: Pro
     return;
   }
 
-  const next = { ...state, gameState: loaded(res) };
+  const next = { ...state, gameState: std.loaded(res) };
 
   if (changedActiveRound(state, next)) {
     log('active round has changed, updating state');
@@ -71,7 +72,7 @@ type ActiveGameProps = {
 function ActiveGame(props: ActiveGameProps): React.FunctionComponentElement<{}> {
   const replaceSubmission = (submission: RoundSubmission): void => {
     const { cursor: previous } = props.gameState;
-    const cursor = mapOption(previous, (round) => ({
+    const cursor = std.mapOption(previous, (round) => ({
       ...round,
       submission,
     }));
@@ -101,14 +102,14 @@ function ActiveGame(props: ActiveGameProps): React.FunctionComponentElement<{}> 
   const voteForEntry = (roundId: string, entryId: string): void => {
     const { cursor: previous } = props.gameState;
     const promise = createVote(roundId, entryId);
-    const vote = loading(promise);
-    const cursor = mapOption(previous, (r) => ({ ...r, vote }));
+    const vote = std.loading(promise);
+    const cursor = std.mapOption(previous, (previousCursor) => ({ ...previousCursor, vote }));
     props.update({ ...props.gameState, cursor });
 
     promise
-      .then(loaded)
-      .catch((e) => failed<{ id: string }>(e))
-      .then((vote) => mapOption(previous, (r) => ({ ...r, vote })))
+      .then(std.loaded)
+      .catch((e) => std.failed<{ id: string }>([e]))
+      .then((vote) => std.mapOption(previous, (r) => ({ ...r, vote })))
       .then((cursor) => {
         log('vote complete, updating game state');
         props.update({ ...props.gameState, cursor });
@@ -117,11 +118,19 @@ function ActiveGame(props: ActiveGameProps): React.FunctionComponentElement<{}> 
     log('voting for entry "%s" for round "%s"', roundId, entryId);
   };
 
+  const clearWarning = (): void => {
+    const { cursor: previous } = props.gameState;
+    const vote = std.notAsked<{ id: string }>();
+    const cursor = std.mapOption(previous, (previousCursor) => ({ ...previousCursor, vote }));
+    props.update({ ...props.gameState, cursor });
+  };
+
   return (
     <RoundDisplay
       round={props.gameState.cursor}
       updateSubmission={updateSubmission}
       submitSubmission={submitSubmission}
+      clearWarning={clearWarning}
       voteForEntry={voteForEntry}
     />
   );
@@ -179,14 +188,14 @@ function Game(props: Props): React.FunctionComponentElement<{}> {
         const { promise } = details;
 
         promise
-          .then((details) => update({ ...state, gameState: loaded(details) }))
-          .catch((e) => update({ ...state, gameState: failed([e]) }));
+          .then((details) => update({ ...state, gameState: std.loaded(details) }))
+          .catch((e) => update({ ...state, gameState: std.failed([e]) }));
 
         break;
       }
       case 'not-asked': {
         const promise = load(state);
-        const gameState = loading(promise);
+        const gameState = std.loading(promise);
 
         return update({ ...state, gameState });
       }
@@ -207,7 +216,7 @@ function Game(props: Props): React.FunctionComponentElement<{}> {
   const { lobby, game } = gameState;
 
   log('game "%s" loaded', game.id);
-  const updateGameState = (newState: GameState): void => update({ ...state, gameState: loaded(newState) });
+  const updateGameState = (newState: GameState): void => update({ ...state, gameState: std.loaded(newState) });
 
   const content =
     game.ended && game.placements && game.placements.length

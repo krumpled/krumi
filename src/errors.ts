@@ -1,7 +1,12 @@
 import { Option, none, some } from '@krumpled/krumi/std';
 
+export const HUMANIZED_ERRORS: Record<string, string> = Object.freeze({
+  'errors.vote_for_self': 'Unable to vote for yourself',
+});
+
 export type ServerError = {
   message: string;
+  humanized?: string;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -18,5 +23,6 @@ export function extractServerError(error: any): Option<ServerError> {
     return none();
   }
 
-  return some({ message: response.data as string });
+  const humanized = HUMANIZED_ERRORS[response.data as string];
+  return some({ message: response.data as string, humanized });
 }

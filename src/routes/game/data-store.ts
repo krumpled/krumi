@@ -90,8 +90,7 @@ export async function createEntry(roundId: string, entry: string): Promise<{ ent
 
 export async function createVote(roundId: string, entryId: string): Promise<{ id: string }> {
   log('creating vote "%s" for round "%s"', entryId, roundId);
-  const result = { id: 'hi' };
-  await post('/round-entry-votes', { entryId, roundId });
+  const result = (await post('/round-entry-votes', { entryId, roundId })) as Result<{ id: string }>;
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  return result;
+  return resultToPromise(result);
 }
