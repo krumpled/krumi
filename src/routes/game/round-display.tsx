@@ -5,6 +5,8 @@ import { RoundSubmission as Submission } from '@krumpled/krumi/routes/game/round
 import Icon from '@krumpled/krumi/components/icon';
 import Loading from '@krumpled/krumi/components/application-loading';
 import ApplicationError from '@krumpled/krumi/components/application-error';
+import { extractServerError } from '@krumpled/krumi/errors';
+import * as std from '@krumpled/krumi/std';
 import debug from 'debug';
 
 const log = debug('krumi:routes.game.round-display');
@@ -13,6 +15,7 @@ type Props = {
   round: ActiveRound;
   updateSubmission: (value: string) => void;
   submitSubmission: (roundId: string, value: string) => void;
+  clearWarning: () => void;
   voteForEntry: (roundId: string, entryId: string) => void;
 };
 
@@ -125,15 +128,13 @@ function renderOptionRow(
   voteForEntry: (id: string) => void,
   // eslint-disable-next-line @typescript-eslint/ban-types
 ): React.FunctionComponentElement<{}> {
+  const canVote = activeVote.kind === 'failed' || activeVote.kind === 'not-asked';
+
   return (
     <tr key={option.id} data-option-id={option.id}>
       <td className="w-full">{option.value}</td>
       <td>
-        <button
-          className="block btn"
-          disabled={activeVote.kind !== 'not-asked'}
-          onClick={(): void => voteForEntry(option.id)}
-        >
+        <button className="block btn" disabled={!canVote} onClick={(): void => voteForEntry(option.id)}>
           vote
         </button>
       </td>
@@ -142,13 +143,39 @@ function renderOptionRow(
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-types
+function renderVoteErrorFlash(error: Error, clear: () => void): React.FunctionComponentElement<{}> {
+  const key = window.btoa(error.name);
+  const serverError = extractServerError(error);
+  const message = std.unwrapOptionOr(
+    std.mapOption(serverError, (error) => error.humanized),
+    'Unable to submit vote',
+  );
+
+  return (
+    <div key={key} className="warn-flash mb-3 flex items-center">
+      <span className="block">{message}</span>
+      <button className="block ml-auto" onClick={clear}>
+        <Icon icon="times" />
+      </button>
+    </div>
+  );
+}
+
+// eslint-disable-next-line @typescript-eslint/ban-types
 function VotingRoundDisplay(props: VotingRoundProps): React.FunctionComponentElement<{}> {
   const { round, options, vote } = props.cursor;
   const voteForEntry = (entryId: string): void => props.voteForEntry(round.id, entryId);
   const renderedOptions = options.map((option) => renderOptionRow(option, vote, voteForEntry));
+  const flashMessages = [];
+
+  if (vote.kind === 'failed') {
+    const { errors } = vote;
+    flashMessages.push(...errors.map((err) => renderVoteErrorFlash(err, props.clearWarning)));
+  }
 
   return (
     <section data-role="voting-round">
+      {flashMessages}
       <header className="block mb-2 pb-2 flex items-center">
         <h1 className="text-gray-500 mr-3">Vote!</h1>
         <section
