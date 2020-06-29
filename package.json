@@ -1,6 +1,6 @@
 {
   "name": "@krumpled/krumi",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "the react front-end for eutaw/krumpled",
   "scripts": {
     "tsc": "tsc --noEmit",
