@@ -27,8 +27,7 @@ function SubmissionDisplay(props: {
   submission: Submission;
   update: (value: string) => void;
   submit: (value: string) => void;
-  // eslint-disable-next-line @typescript-eslint/ban-types
-}): React.FunctionComponentElement<{}> {
+}): React.FunctionComponentElement<unknown> {
   const { submission } = props;
 
   if (submission.kind === 'not-submitted') {
@@ -88,7 +87,7 @@ type EntryRoundDisplayProps = {
 } & Omit<Props, 'round'>;
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-function EntryRoundDisplay(props: EntryRoundDisplayProps): React.FunctionComponentElement<{}> {
+function EntryRoundDisplay(props: EntryRoundDisplayProps): React.FunctionComponentElement<EntryRoundDisplayProps> {
   const { round: details, submission } = props.cursor;
 
   return (
@@ -126,8 +125,7 @@ function renderOptionRow(
   option: { id: string; value: string },
   activeVote: AsyncRequest<{ id: string }>,
   voteForEntry: (id: string) => void,
-  // eslint-disable-next-line @typescript-eslint/ban-types
-): React.FunctionComponentElement<{}> {
+): React.FunctionComponentElement<unknown> {
   const canVote = activeVote.kind === 'failed' || activeVote.kind === 'not-asked';
 
   return (
@@ -142,8 +140,7 @@ function renderOptionRow(
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-function renderVoteErrorFlash(error: Error, clear: () => void): React.FunctionComponentElement<{}> {
+function renderVoteErrorFlash(error: Error, clear: () => void): React.FunctionComponentElement<unknown> {
   const key = window.btoa(error.name);
   const serverError = extractServerError(error);
   const message = std.unwrapOptionOr(
@@ -161,8 +158,7 @@ function renderVoteErrorFlash(error: Error, clear: () => void): React.FunctionCo
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-function VotingRoundDisplay(props: VotingRoundProps): React.FunctionComponentElement<{}> {
+function VotingRoundDisplay(props: VotingRoundProps): React.FunctionComponentElement<VotingRoundProps> {
   const { round, options, vote } = props.cursor;
   const voteForEntry = (entryId: string): void => props.voteForEntry(round.id, entryId);
   const renderedOptions = options.map((option) => renderOptionRow(option, vote, voteForEntry));
@@ -198,8 +194,7 @@ function VotingRoundDisplay(props: VotingRoundProps): React.FunctionComponentEle
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-function RoundDisplay(props: Props): React.FunctionComponentElement<{}> {
+function RoundDisplay(props: Props): React.FunctionComponentElement<Props> {
   const { round } = props;
 
   if (round.kind === 'none') {

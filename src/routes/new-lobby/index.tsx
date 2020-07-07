@@ -31,8 +31,7 @@ async function create(): Promise<Job> {
   return resultToPromise(job);
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-function NewLobby(): React.FunctionComponentElement<{}> {
+function NewLobby(): React.FunctionComponentElement<unknown> {
   const [state, update] = useState(init());
 
   useEffect(() => {

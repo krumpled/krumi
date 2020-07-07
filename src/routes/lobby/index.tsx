@@ -61,8 +61,7 @@ function init(): State {
   return { id, data: std.notAsked() };
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-function renderGame(game: LobbyGame, lobbyId: string): React.FunctionComponentElement<{}> {
+function renderGame(game: LobbyGame, lobbyId: string): React.FunctionComponentElement<unknown> {
   const created = moment(game.created);
   log('rendering game created on "%s"', created.fromNow());
   return (
@@ -82,8 +81,7 @@ function renderGame(game: LobbyGame, lobbyId: string): React.FunctionComponentEl
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-function renderMember(member: LobbyMember): React.FunctionComponentElement<{}> {
+function renderMember(member: LobbyMember): React.FunctionComponentElement<unknown> {
   const joinedAt = member.joinedAt ? moment(member.joinedAt).fromNow() : '';
   return (
     <tr data-member-user-id={member.userId} key={member.memberId} data-member-membership-id={member.memberId}>
@@ -93,8 +91,7 @@ function renderMember(member: LobbyMember): React.FunctionComponentElement<{}> {
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-function toggleDetails(viewing: string): [string, React.FunctionComponentElement<{}>] {
+function toggleDetails(viewing: string): [string, React.FunctionComponentElement<unknown>] {
   const viewingUsers = viewing === 'users';
   const mode = viewingUsers ? 'games' : 'users';
   const destination = `?mode=${mode}`;
@@ -103,8 +100,7 @@ function toggleDetails(viewing: string): [string, React.FunctionComponentElement
   return [destination, icon];
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-function Lobby(): React.FunctionComponentElement<{}> {
+function Lobby(): React.FunctionComponentElement<unknown> {
   const { search } = useLocation();
   const mode = std.findQueryValue('mode', search || '');
   const viewing = std.unwrapOptionOr(

@@ -13,14 +13,13 @@ type State = {
 
 const log = debug('krumi:logout');
 
-function Logout({
-  state,
-  update,
-}: {
+type Props = {
   state: State;
   update: (state: State) => void;
-  // eslint-disable-next-line @typescript-eslint/ban-types
-}): React.FunctionComponentElement<{}> {
+};
+
+function Logout(props: Props): React.FunctionComponentElement<Props> {
+  const { state, update } = props;
   const { session } = state;
   log('rendering logout route...');
 
