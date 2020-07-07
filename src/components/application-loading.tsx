@@ -1,7 +1,6 @@
 import React from 'react';
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-function ApplicationLoading(): React.FunctionComponentElement<{}> {
+function ApplicationLoading(): React.FunctionComponentElement<unknown> {
   return (
     <section data-role="application-loading" className="py-10 h-20 box-content text-center relative">
       <div className="spinner">

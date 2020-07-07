@@ -165,8 +165,7 @@ function EndedGame(props: { game: GameState['game'] }): React.FunctionComponentE
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-function Game(props: Props): React.FunctionComponentElement<{}> {
+function Game(props: Props): React.FunctionComponentElement<Props> {
   const [state, update] = useState(init({ session: props.session }));
 
   useEffect(() => {

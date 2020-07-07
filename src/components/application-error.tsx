@@ -1,21 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import debug from 'debug';
-
-const log = debug('krumi:application-error');
 
 export type Props = {
   errors?: Array<Error>;
 };
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-function ApplicationError(props: Props): React.FunctionComponentElement<{}> {
-  log('application-error - %o', props.errors);
+function ApplicationError(props: Props): React.FunctionComponentElement<Props> {
   return (
     <section data-role="applicaiton-error" className="flex items-center py-5 px-10">
       <p>
         <span>Something went wrong. </span>
         <Link to="/home">Return home.</Link>
+        <input type="hidden" value={props.errors?.map((error) => error.message).join('\n')} />
       </p>
     </section>
   );
