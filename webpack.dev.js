@@ -3,7 +3,7 @@
 
 const common = require('./webpack.common.js');
 const path = require('path');
-const merge = require('webpack-merge');
+const { merge } = require('webpack-merge');
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 module.exports = merge(common, {

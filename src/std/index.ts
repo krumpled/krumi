@@ -36,7 +36,7 @@ function camelize(input: string): string {
   return replaced.substr(0, 1).toLowerCase() + replaced.substr(1);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
 export function camelizeKeys(input: any): any {
   if (typeof input !== 'object') {
     return input;
@@ -74,7 +74,7 @@ export function camelizeKeys(input: any): any {
   }, {} as object);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
 export function underscoreKeys(input: any): any {
   if (typeof input !== 'object') {
     return input;
