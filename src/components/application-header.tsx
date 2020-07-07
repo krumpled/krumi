@@ -3,8 +3,7 @@ import { Link } from 'react-router-dom';
 import { Session } from '@krumpled/krumi/session';
 import Icon from '@krumpled/krumi/components/icon';
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-function Header({ session }: { session: Session }): React.FunctionComponentElement<{}> {
+function Header({ session }: { session: Session }): React.FunctionComponentElement<unknown> {
   if (session.user.kind === 'none') {
     return (
       <header className="flex bg-gray-900 x-gutters py-5 items-center">

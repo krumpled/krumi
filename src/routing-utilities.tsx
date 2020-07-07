@@ -6,12 +6,10 @@ import { always } from '@krumpled/krumi/std';
 export type AuthenticatedRouteProps<T> = T & { session: Session };
 
 export function AuthenticatedRoute<T>(
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  route: (props: T) => React.FunctionComponentElement<{}>,
-  // eslint-disable-next-line @typescript-eslint/ban-types
-): (props: AuthenticatedRouteProps<T>) => React.FunctionComponentElement<{}> {
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  function Inner(props: AuthenticatedRouteProps<T>): React.FunctionComponentElement<{}> {
+  route: (props: T) => React.FunctionComponentElement<T>,
+): (props: AuthenticatedRouteProps<T>) => React.FunctionComponentElement<AuthenticatedRouteProps<T>> {
+  function Inner(props: AuthenticatedRouteProps<T>): React.FunctionComponentElement<AuthenticatedRouteProps<T>> {
+    // eslint-disable-next-line react/prop-types
     return isAuthenticated(props.session) ? route(props) : <Redirect to="/login" />;
   }
 
