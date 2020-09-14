@@ -34,7 +34,7 @@
     "src"
   ],
   "devDependencies": {
-    "@testing-library/react": "^11.0.2",
+    "@testing-library/react": "^11.0.4",
     "@types/debug": "^4.1.5",
     "@types/jest": "^26.0.10",
     "@types/react": "^16.9.49",
